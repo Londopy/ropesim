@@ -128,8 +128,12 @@ class MainWindow(QMainWindow):
 
         # Help
         help_m = mb.addMenu("&Help")
+        self._act_demo  = QAction("★ &Demo Route", self, shortcut="F8")
         self._act_about = QAction("&About", self)
+        help_m.addAction(self._act_demo)
+        help_m.addSeparator()
         help_m.addAction(self._act_about)
+        self._act_demo.triggered.connect(self._run_demo)
         self._act_about.triggered.connect(self._show_about)
 
     # ── toolbar ──────────────────────────────────────────────────────────────
@@ -168,6 +172,7 @@ class MainWindow(QMainWindow):
         self._props.add_cam_requested.connect(self._add_cam)
         self._props.add_nut_requested.connect(self._add_nut)
         self._props.edit_rope_requested.connect(self._edit_rope)
+        self._props.demo_requested.connect(self._run_demo)
 
         # Canvas → model
         self._canvas.gear_moved.connect(self._on_gear_moved)
@@ -482,6 +487,104 @@ class MainWindow(QMainWindow):
             self._model.clear_gear()
             self._results.clear()
             self._sb.showMessage("New route — add protection to get started.")
+
+    # ── demo mode ─────────────────────────────────────────────────────────────
+
+    def _run_demo(self) -> None:
+        """
+        Animated demo: place a realistic mixed trad/sport route piece-by-piece,
+        then run a fall simulation followed by a position sweep.
+
+        Gear sequence (bottom → top):
+          3 m  — nut  (passive stopper, marginal placement)
+          6 m  — cam  (SLCD, good placement)
+          9 m  — nut  (passive, perfect placement)
+         13 m  — cam  (SLCD, good placement)
+         17 m  — bolt (sport, glue-in)
+         20 m  — bolt (sport, glue-in)  ← last piece of pro
+        Climber at 22 m → fall factor ≈ 0.40
+        """
+        from ropesim.anchor import (
+            AnchorSystem, AnchorType,
+            Bolt, Cam, Nut,
+            BoltType, CamPlacement, RockType,
+        )
+        from ropesim.gui.models import GearItem
+
+        # ── stop any running simulation first
+        self._stop_worker()
+        self._model.clear_gear()
+        self._results.clear()
+        self._sb.showMessage("★ Demo mode — watch the route build…")
+
+        # ── gear definitions ─────────────────────────────────────────────────
+        def _nut(height_m: float, placement: CamPlacement, label: str, x: float = 0.0) -> GearItem:
+            n = Nut(rated_mbs_kn=9.0, placement=placement, rock_type=RockType.GRANITE)
+            return GearItem(kind="nut", height_m=height_m, x_offset=x, label=label, nut=n)
+
+        def _cam(height_m: float, placement: CamPlacement, label: str, x: float = 0.25) -> GearItem:
+            c = Cam(brand="Wild Country", size="1", rated_mbs_kn=12.0,
+                    placement=placement, rock_type=RockType.GRANITE, walking_risk=False)
+            return GearItem(kind="cam", height_m=height_m, x_offset=x, label=label, cam=c)
+
+        def _bolt(height_m: float, label: str, x: float = 0.0) -> GearItem:
+            b = Bolt(bolt_type=BoltType.GLUE_IN, rated_mbs_kn=25.0,
+                     age_years=3, rock_type=RockType.GRANITE)
+            return GearItem(kind="bolt", height_m=height_m, x_offset=x, label=label, bolt=b)
+
+        sequence = [
+            _nut (  3.0, CamPlacement.MARGINAL, "Nut 1",  x= 0.0),
+            _cam (  6.0, CamPlacement.GOOD,     "Cam 1",  x= 0.25),
+            _nut (  9.0, CamPlacement.PERFECT,  "Nut 2",  x=-0.2),
+            _cam ( 13.0, CamPlacement.GOOD,     "Cam 2",  x= 0.25),
+            _bolt( 17.0,                        "Bolt 1", x= 0.0),
+            _bolt( 20.0,                        "Bolt 2", x= 0.0),
+        ]
+
+        CLIMBER_HEIGHT = 22.0
+        DELAY_MS       = 500   # ms between each piece appearing
+
+        # ── schedule each gear item with increasing delay ────────────────────
+        for i, item in enumerate(sequence):
+            QTimer.singleShot(
+                i * DELAY_MS,
+                lambda it=item, idx=i: self._demo_add_piece(it, idx, len(sequence)),
+            )
+
+        # ── after all gear is placed: set climber, run fall, then sweep ──────
+        total_gear_delay = len(sequence) * DELAY_MS
+
+        QTimer.singleShot(
+            total_gear_delay + 300,
+            lambda: self._demo_set_climber(CLIMBER_HEIGHT),
+        )
+        QTimer.singleShot(
+            total_gear_delay + 700,
+            self._run_fall,
+        )
+        # sweep starts after fall animation (~3 s)
+        QTimer.singleShot(
+            total_gear_delay + 4200,
+            self._run_sweep,
+        )
+
+    def _demo_add_piece(self, item, idx: int, total: int) -> None:
+        """Called by QTimer to add one gear item and update the status bar."""
+        self._model.add_gear(item)
+        kind_icon = {"bolt": "🔩", "cam": "🟣", "nut": "🔶"}.get(item.kind, "•")
+        self._sb.showMessage(
+            f"★ Demo — placing gear {idx + 1}/{total}: "
+            f"{kind_icon} {item.label} at {item.height_m:.0f} m"
+        )
+
+    def _demo_set_climber(self, height_m: float) -> None:
+        """Move climber to demo height and update the canvas."""
+        self._props._height_spin.setValue(height_m)
+        self._model.set_climber_height(height_m)
+        self._canvas.set_climber_height(height_m)
+        self._sb.showMessage(
+            f"★ Demo — climber at {height_m:.0f} m, simulating fall…"
+        )
 
     def _show_about(self) -> None:
         QMessageBox.about(

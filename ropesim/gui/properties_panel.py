@@ -25,6 +25,7 @@ class PropertiesPanel(QWidget):
     add_cam_requested   = Signal()
     add_nut_requested   = Signal()
     edit_rope_requested = Signal()
+    demo_requested      = Signal()
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
@@ -126,6 +127,15 @@ class PropertiesPanel(QWidget):
         zipper_btn = QPushButton("↓  Zipper Analysis")
         zipper_btn.clicked.connect(self.zipper_requested)
         layout.addWidget(zipper_btn)
+
+        layout.addSpacing(4)
+        demo_btn = QPushButton("★  Demo Route")
+        demo_btn.setToolTip(
+            "Auto-place a mixed trad/sport route and run a fall + sweep demo"
+        )
+        demo_btn.setStyleSheet("color: #f0c040; font-style: italic;")
+        demo_btn.clicked.connect(self.demo_requested)
+        layout.addWidget(demo_btn)
 
         self._progress = QProgressBar()
         self._progress.setRange(0, 100)

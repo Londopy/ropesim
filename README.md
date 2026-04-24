@@ -250,7 +250,13 @@ Add `--json` to any command for machine-readable output.
 ropesim          # launch the desktop GUI (requires pip install "ropesim[gui]")
 ```
 
-**Workflow:**
+### Demo mode
+
+The fastest way to see everything in action: click **★ Demo Route** in the left panel (or press `F8`).
+
+It automatically builds a realistic mixed trad/sport route — placing two nuts, two cams, and two bolts one by one as you watch — then runs a fall simulation and a full position sweep without any interaction needed. Great for getting a feel for the app or showing it to someone else.
+
+**Manual workflow:**
 1. Select a rope from the left panel
 2. Click **+ Bolt**, **+ Cam**, or **+ Nut** to place protection on the wall — drag to reposition
 3. Set climber mass and height
@@ -263,6 +269,7 @@ ropesim          # launch the desktop GUI (requires pip install "ropesim[gui]")
 
 | Key | Action |
 |-----|--------|
+| `F8` | Demo route (auto-build + simulate) |
 | `F5` | Run fall simulation |
 | `F6` | Sweep all positions |
 | `F7` | Zipper analysis |
