@@ -64,14 +64,33 @@ jobs:
       - name: Install maturin and Python deps
         run: pip install maturin numpy pydantic matplotlib pytest pytest-benchmark
 
+      - name: Create virtualenv for maturin
+        run: python -m venv .venv
+
       - name: Build and install Rust extension (editable)
-        # runner.temp is cross-platform: /tmp on Linux/macOS, %RUNNER_TEMP% on Windows
-        run: maturin develop --release
+        # maturin develop requires a virtualenv; we point it at the one we just created.
+        # runner.temp is cross-platform: /home/runner/... on Linux/macOS, %RUNNER_TEMP% on Windows.
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            source .venv/Scripts/activate
+          else
+            source .venv/bin/activate
+          fi
+          pip install numpy pydantic matplotlib pytest pytest-benchmark
+          maturin develop --release
         env:
           CARGO_TARGET_DIR: ${{ runner.temp }}/ropesim_target
 
       - name: Run full test suite
-        run: python -m pytest tests/ -v --tb=short -m "not benchmark"
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            source .venv/Scripts/activate
+          else
+            source .venv/bin/activate
+          fi
+          python -m pytest tests/ -v --tb=short -m "not benchmark"
 
   # ── Build wheels ───────────────────────────────────────────────────────────
   build-wheels:
@@ -117,7 +136,9 @@ jobs:
         with:
           target: ${{ matrix.target }}
           manylinux: ${{ matrix.manylinux }}
-          args: --release --out dist --find-interpreter
+          # Explicit interpreter list avoids picking up Python 3.13 which pyo3 0.22
+          # still has limited support for on some platforms.
+          args: --release --out dist --interpreter python3.11 python3.12
           sccache: true
 
       - name: Upload wheel artefacts
