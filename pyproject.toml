@@ -4,10 +4,10 @@ build-backend = "maturin"
 
 [project]
 name        = "ropesim"
-version     = "0.1.0"
+version     = "0.2.0"
 description = "Climbing rope physics engine and GUI simulator "
 readme      = "README.md"
-license     = { text = "MIT" }
+license     = { file = "LICENSE" }
 requires-python = ">=3.10"
 authors     = [{ name = "Londopy", email = "ropesim@pxdmail.com" }]
 keywords    = ["climbing", "physics", "rope", "simulation", "UIAA", "EN892", "safety"]
