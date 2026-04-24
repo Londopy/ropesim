@@ -6,7 +6,7 @@ RopeSim models lead-fall dynamics using a damped spring / RK4 integration in
 Rust, exposed to Python via PyO3/Maturin.  It ships a full Python API, a
 five-command CLI, and a PySide6 desktop GUI.
 
-[![CI](https://github.com/ropesim/ropesim/actions/workflows/ci.yml/badge.svg)](https://github.com/ropesim/ropesim/actions/workflows/ci.yml)
+[![CI](https://github.com/Londopy/ropesim/actions/workflows/ci.yml/badge.svg)](https://github.com/Londopy/ropesim/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/ropesim)](https://pypi.org/project/ropesim/)
 [![Python 3.10+](https://img.shields.io/pypi/pyversions/ropesim)](https://pypi.org/project/ropesim/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -37,7 +37,7 @@ pip install "ropesim[gui]"     # + PySide6 GUI
 ### From source (requires Rust toolchain)
 
 ```bash
-git clone https://github.com/ropesim/ropesim.git
+git clone https://github.com/Londopy/ropesim.git
 cd ropesim
 pip install maturin
 maturin develop --release      # compiles Rust, installs in editable mode
