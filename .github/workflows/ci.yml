@@ -1,0 +1,180 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Python-only tests (no Rust compilation) ───────────────────────────────
+  test-pure-python:
+    name: Python ${{ matrix.python-version }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install Python dependencies (no Rust)
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pydantic matplotlib pytest pytest-benchmark
+
+      - name: Run pure-Python tests
+        run: |
+          python -m pytest tests/ -v --tb=short \
+            -m "not requires_rust and not benchmark"
+
+  # ── Full tests with compiled Rust extension ────────────────────────────────
+  test-with-rust:
+    name: Rust+Python ${{ matrix.python-version }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build artefacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ropesim/_rustcore
+
+      - name: Install maturin and Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install maturin numpy pydantic matplotlib pytest pytest-benchmark
+
+      - name: Build and install Rust extension (editable)
+        run: maturin develop --release
+        env:
+          CARGO_TARGET_DIR: /tmp/ropesim_target   # avoids permission issues on mounted FS
+
+      - name: Run full test suite
+        run: python -m pytest tests/ -v --tb=short -m "not benchmark"
+
+  # ── Build wheels for all platforms ────────────────────────────────────────
+  build-wheels:
+    name: Build wheels / ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        include:
+          # Linux x86-64
+          - os: ubuntu-latest
+            target: x86_64
+            manylinux: auto
+          # Linux aarch64 (cross-compiled)
+          - os: ubuntu-latest
+            target: aarch64
+            manylinux: auto
+          # macOS Intel
+          - os: macos-latest
+            target: x86_64
+            manylinux: ""
+          # macOS Apple Silicon
+          - os: macos-latest
+            target: aarch64
+            manylinux: ""
+          # Windows x86-64
+          - os: windows-latest
+            target: x86_64
+            manylinux: ""
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build wheels via maturin-action
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: ${{ matrix.manylinux || 'auto' }}
+          args: --release --out dist --find-interpreter
+          sccache: true
+
+      - name: Upload wheel artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.target }}-${{ matrix.os }}
+          path: dist/*.whl
+
+  # ── Build pure-Python sdist ───────────────────────────────────────────────
+  build-sdist:
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install maturin
+        run: pip install maturin
+
+      - name: Build sdist
+        run: maturin sdist --out dist
+
+      - name: Upload sdist artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+
+  # ── Publish to PyPI on version tags ───────────────────────────────────────
+  publish:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    needs: [test-with-rust, build-wheels, build-sdist]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    environment: pypi
+    permissions:
+      id-token: write   # required for OIDC trusted publishing
+
+    steps:
+      - name: Download all wheel artefacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          merge-multiple: true
+          path: dist/
+
+      - name: Download sdist artefact
+        uses: actions/download-artifact@v4
+        with:
+          name: sdist
+          path: dist/
+
+      - name: Publish to PyPI (trusted publishing — no token needed)
+        uses: pypa/gh-action-pypi-publish@release/v1

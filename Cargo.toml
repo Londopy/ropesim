@@ -1,0 +1,3 @@
+[workspace]
+members  = ["ropesim/_rustcore"]
+resolver = "2"

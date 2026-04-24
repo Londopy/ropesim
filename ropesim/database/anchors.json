@@ -1,0 +1,88 @@
+[
+  {
+    "name": "Fixe Triplex Glue-In Bolt",
+    "type": "bolt",
+    "bolt_type": "glue_in",
+    "rated_mbs_kn": 25.0,
+    "material": "stainless_steel_316",
+    "diameter_mm": 10.0,
+    "notes": "UIAA approved, widely used in sport climbing"
+  },
+  {
+    "name": "Petzl Coeur Bolt 10mm",
+    "type": "bolt",
+    "bolt_type": "glue_in",
+    "rated_mbs_kn": 25.0,
+    "material": "stainless_steel_316",
+    "diameter_mm": 10.0,
+    "notes": "CE/UIAA certified; widely used anchor bolt"
+  },
+  {
+    "name": "Hilti HIT-RE 500 Expansion Bolt 12mm",
+    "type": "bolt",
+    "bolt_type": "expansion_wedge",
+    "rated_mbs_kn": 30.0,
+    "material": "stainless_steel_316",
+    "diameter_mm": 12.0,
+    "notes": "Industrial-grade expansion anchor; common in multi-pitch"
+  },
+  {
+    "name": "Black Diamond C4 #2 Cam",
+    "type": "cam",
+    "rated_mbs_kn": 14.0,
+    "size_range_mm": [30.0, 52.0],
+    "material": "aluminium_7075",
+    "notes": "Industry standard SLCD; sizes 0.1–6"
+  },
+  {
+    "name": "Black Diamond C4 #3 Cam",
+    "type": "cam",
+    "rated_mbs_kn": 14.0,
+    "size_range_mm": [44.0, 75.0],
+    "material": "aluminium_7075",
+    "notes": "Industry standard SLCD"
+  },
+  {
+    "name": "Wild Country Zero Friend #3",
+    "type": "cam",
+    "rated_mbs_kn": 12.0,
+    "size_range_mm": [28.0, 46.0],
+    "material": "aluminium_7075",
+    "notes": "Offset lobes for constricting placements"
+  },
+  {
+    "name": "DMM Wallnut #7",
+    "type": "nut",
+    "rated_mbs_kn": 12.0,
+    "size_range_mm": [10.0, 14.0],
+    "material": "aluminium_7075",
+    "notes": "Passive wired stopper; EN 12270 certified"
+  },
+  {
+    "name": "Petzl Djinn Axess 60cm Sling",
+    "type": "sling",
+    "material": "nylon",
+    "width_mm": 25.0,
+    "rated_mbs_kn": 22.0,
+    "length_m": 0.6,
+    "notes": "EN 566 certified; standard alpine draw sling"
+  },
+  {
+    "name": "Mammut 8mm Dyneema Sling 60cm",
+    "type": "sling",
+    "material": "dyneema",
+    "width_mm": 8.0,
+    "rated_mbs_kn": 22.0,
+    "length_m": 0.6,
+    "notes": "Ultra-light; low elongation — avoid shock-loading"
+  },
+  {
+    "name": "Petzl OK Carabiner",
+    "type": "carabiner",
+    "major_axis_mbs_kn": 23.0,
+    "minor_axis_mbs_kn": 8.0,
+    "open_gate_mbs_kn": 7.0,
+    "weight_g": 56.0,
+    "notes": "CE/UIAA EN 12275 certified; pear shape for belay use"
+  }
+]

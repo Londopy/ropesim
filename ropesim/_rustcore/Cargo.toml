@@ -1,0 +1,15 @@
+[package]
+name    = "ropesim-rustcore"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name       = "_rustcore"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3   = { version = "0.21", features = ["extension-module"] }
+rayon  = "1.10"
+
+[features]
+default = []
