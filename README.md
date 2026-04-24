@@ -1,6 +1,6 @@
 # RopeSim
 
-**Climbing rope physics engine and GUI simulator — UIAA 101 / EN 892**
+**Climbing rope physics engine and GUI simulator**
 
 RopeSim models lead-fall dynamics using a damped spring / RK4 integration in
 Rust, exposed to Python via PyO3/Maturin.  It ships a full Python API, a
@@ -18,7 +18,9 @@ five-command CLI, and a PySide6 desktop GUI.
 - **UIAA 101 / EN 892** impact-force model with belay-device friction, wet-rope modifier, and temperature correction
 - **RK4 force-time curve** — full damped spring integration in Rust for accurate energy modelling
 - **Parallel batch sweeps** via Rayon — sweep 200 fall positions in milliseconds
-- **Anchor system physics** — sliding-X, quad, 2-bolt cordelette with load distribution
+- **Anchor system physics** — sliding-X, quad, cordelette, trad gear with load distribution and progressive failure
+- **Rope diameter under load** — estimates radial compression at any applied force
+- **Rope degradation model** — stiffness and impact-force drift with falls taken
 - **25-rope database** covering Beal, Mammut, Sterling, Petzl, Edelrid, Black Diamond, and more
 - **PySide6 GUI** — drag-and-drop route builder, live simulation, fall animation, matplotlib plots, PDF/CSV export
 - **CLI** — five commands: `simulate`, `anchor`, `list-ropes`, `validate-rope`, `sweep`
@@ -31,7 +33,7 @@ five-command CLI, and a PySide6 desktop GUI.
 
 ```bash
 pip install ropesim            # physics library + CLI only
-pip install "ropesim[gui]"     # + PySide6 GUI
+pip install "ropesim[all]"     # + PySide6 GUI
 ```
 
 ### From source (requires Rust toolchain)
@@ -41,8 +43,28 @@ git clone https://github.com/Londopy/ropesim.git
 cd ropesim
 pip install maturin
 maturin develop --release      # compiles Rust, installs in editable mode
-pip install ".[gui]"           # optional GUI deps
+pip install -e ".[all]"        # optional GUI deps
 ```
+
+> **Python 3.14+** users building from source need one extra step:
+> `set PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1` (Windows) or
+> `export PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1` (Linux/macOS) before running
+> `maturin develop`. PyPI wheel installs are unaffected.
+
+---
+
+## Demo
+
+A self-contained demo script exercises every feature of the library and saves
+eight matplotlib plots to your working directory:
+
+```bash
+python demo.py
+```
+
+This covers: units, standards lookup, rope database search, rope physics
+helpers, fall simulation, anchor systems, scenario builder, sweep and zipper
+analysis, visualisations, and the low-level Rust core API.
 
 ---
 
@@ -71,6 +93,28 @@ print(f"Energy absorbed   : {result.energy_budget.rope_absorption_j:.0f} J")
 print(f"Warnings          : {result.warnings or 'none'}")
 ```
 
+### Rope physics helpers
+
+```python
+from ropesim.rope import Rope, RopeDatabase
+
+rope = Rope(RopeDatabase().get("Beal Opera 8.5 Dry"))
+
+# Elongation at a given force
+print(rope.elongation_at_force(9.0))         # metres
+
+# Estimated rope diameter under load
+for kn in [0, 3, 6, 9, 12]:
+    print(f"{kn} kN → {rope.diameter_under_load(kn):.3f} mm")
+
+# Degradation after repeated falls
+worn = rope.degrade(falls_taken=10)
+print(worn.retirement_warning(falls_taken=10))
+
+# EN 892 / UIAA 101 compliance check
+print(rope.validate_standard_compliance())
+```
+
 ### Scenario builder (multi-pitch / gear placement)
 
 ```python
@@ -93,6 +137,32 @@ print(f"Peak: {result.peak_force_kn:.2f} kN  FF: {result.fall_factor:.3f}")
 # Sweep all positions
 sweep = scenario.sweep_fall_positions(steps=60)
 print(f"Worst position: {sweep.worst_height_m:.1f} m → {sweep.worst_peak_kn:.2f} kN")
+
+# Zipper failure cascade
+zipper = scenario.simulate_zipper(climber_height_m=15.0)
+print(f"Pieces failed: {zipper.total_pieces_failed}  ground fall: {zipper.ground_fall_reached}")
+```
+
+### Anchor systems
+
+```python
+from ropesim.anchor import AnchorSystem, AnchorType, Bolt, BoltType, RockType
+
+bolt = Bolt(bolt_type=BoltType.GLUE_IN, rated_mbs_kn=25.0,
+            age_years=3, rock_type=RockType.GRANITE)
+anchor = AnchorSystem(AnchorType.SLIDING_X, [bolt, bolt])
+
+# Force on each component vs load angle
+dist = anchor.load_distribution(load_kn=9.0, load_angle_deg=30)
+print(dist)
+
+# How much of each bolt's MBS is left
+margins = anchor.safety_margins(load_kn=9.0)
+print(margins)
+
+# Progressive failure under extreme load
+failure = anchor.simulate_failure(load_kn=40.0)
+print(f"Cascade: {failure.cascade_occurred}  failed: {failure.failed_indices}")
 ```
 
 ### Batch parallel sweep (Rust/Rayon)
@@ -111,6 +181,33 @@ peak_forces  = batch_sweep_fall_factors(
 print(f"Max peak: {max(peak_forces):.2f} kN at FF {fall_factors[peak_forces.index(max(peak_forces))]:.2f}")
 ```
 
+### Visualisations
+
+```python
+from ropesim import viz
+import matplotlib.pyplot as plt
+
+# Force-time curve
+fig, ax = viz.plot_force_curve(result, dark=True)
+
+# Energy budget breakdown
+fig, ax = viz.plot_energy_budget(result, dark=True)
+
+# Rope elongation vs applied force
+fig, ax = viz.plot_rope_elongation(rope, force_range=(0, 15), dark=True)
+
+# Rope diameter under load
+fig, ax = viz.plot_diameter_under_load(rope, force_range=(0, 12), dark=True)
+
+# Anchor force distribution vs load angle
+fig, ax = viz.plot_anchor_distribution(anchor, load_kn=9.0, dark=True)
+
+# Compare multiple ropes / scenarios on one chart
+fig, ax = viz.plot_comparison([result1, result2], ["Rope A", "Rope B"], dark=True)
+
+plt.show()
+```
+
 ---
 
 ## CLI
@@ -119,16 +216,27 @@ print(f"Max peak: {max(peak_forces):.2f} kN at FF {fall_factors[peak_forces.inde
 # List all ropes in the database
 ropesim-cli list-ropes
 
+# Filter to dry single ropes only
+ropesim-cli list-ropes --type dry_single
+
 # Simulate a single fall
-ropesim-cli simulate --mass 80 --fall-distance 8 --rope-out 20 --device grigri
+ropesim-cli simulate --mass 80 --fall-dist 8 --rope-out 20 \
+    --rope "Beal Opera 8.5 Dry" --device grigri
+
+# Wet rope at -5 °C
+ropesim-cli simulate --mass 75 --fall-dist 6 --rope-out 15 \
+    --device atc --wet --temp -5
+
+# Machine-readable JSON output
+ropesim-cli simulate --mass 80 --fall-dist 8 --rope-out 20 --json
 
 # Anchor force distribution
-ropesim-cli anchor --type sliding_x --load-kn 9.5 --angle 60
+ropesim-cli anchor --type sliding_x --load 9.5 --angle 60
 
-# Sweep fall positions
-ropesim-cli sweep --mass 80 --rope "Beal Opera 8.5 Dry" --steps 50
+# Sweep fall factors across a range
+ropesim-cli sweep --rope "Mammut Crag Classic 10.2" --mass 80 --steps 20
 
-# Validate rope data
+# Validate a rope against EN 892 / UIAA 101
 ropesim-cli validate-rope --name "Mammut Crag Classic 10.2"
 ```
 
@@ -142,16 +250,14 @@ Add `--json` to any command for machine-readable output.
 ropesim          # launch the desktop GUI (requires pip install "ropesim[gui]")
 ```
 
-<!-- Screenshot placeholder -->
-<!-- ![RopeSim GUI](docs/screenshot.png) -->
-
 **Workflow:**
 1. Select a rope from the left panel
-2. Double-click the canvas or use the toolbar to place bolts, cams, or nuts
+2. Click **+ Bolt**, **+ Cam**, or **+ Nut** to place protection on the wall — drag to reposition
 3. Set climber mass and height
-4. Press **F5** (or ▶ Run) to simulate a fall — watch the animation
-5. Press **F6** to sweep all positions and see the force-vs-height plot
-6. Export results as PDF or CSV from the File menu
+4. Press **Run Fall Simulation** — watch the animation, results appear in the right panel
+5. Press **Sweep All Positions** to see peak force vs climber height across the whole route
+6. **Zipper Analysis** models sequential gear-ripping under high loads
+7. Export results as PDF or CSV from the File menu
 
 **Keyboard shortcuts:**
 
@@ -182,11 +288,12 @@ obtained by integrating the damped spring equation with a 4th-order
 Runge-Kutta solver at 1 ms resolution.
 
 Modifiers applied:
-- **Belay device friction** (Grigri: 55%, ATC: 35%, Munter: 45% …)
+
+- **Belay device friction** (Grigri: 55 %, ATC: 35 %, Munter: 45 % …)
 - **Wet rope** +12 % impact force (EN 892 §6.1.3)
 - **Temperature** — stiffness increases ~2 % per 10 °C below 20 °C
-- **Rope age / degradation** — elongation and stiffness drift modelled from
-  published UIAA fatigue data
+- **Rope age / degradation** — elongation and stiffness drift modelled from published UIAA fatigue data
+- **Edge friction** — rope running over a ledge reduces effective belay friction
 
 ---
 
