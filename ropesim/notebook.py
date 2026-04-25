@@ -362,23 +362,24 @@ def _rows_to_table(rows: list[tuple[str, str]],
 
 # ── Patch classes ─────────────────────────────────────────────────────────────
 
+
+# ── Patch classes ─────────────────────────────────────────────────────────────
+
 def _patch() -> None:
     """Monkey-patch ``_repr_html_`` onto all ropesim display classes."""
     from ropesim.rope import Rope
     from ropesim.fall import FallResult
-    from ropesim.simulate import SimulationResult
     from ropesim.anchor import AnchorSystem
 
-    Rope._repr_html_           = _rope_repr_html
-    FallResult._repr_html_     = _fallresult_repr_html
-    SimulationResult._repr_html_ = _simresult_repr_html
-    AnchorSystem._repr_html_   = _anchorsystem_repr_html
+    Rope._repr_html_ = _rope_repr_html
+    FallResult._repr_html_ = _fallresult_repr_html
+    AnchorSystem._repr_html_ = _anchorsystem_repr_html
+
+    try:
+        from ropesim.simulate import SimulationResult
+        SimulationResult._repr_html_ = _simresult_repr_html
+    except ImportError:
+        pass
 
 
-# Patch immediately on import
 _patch()
-
-__all__ = [
-    "patch",
-    "compute_effective_friction",
-]
