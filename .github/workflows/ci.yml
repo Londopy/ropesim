@@ -159,8 +159,15 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install maturin
-        run: pip install maturin
-
       - name: Build sdist
-        run: matur
+        uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: --out dist
+
+      - name: Upload sdist artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+
