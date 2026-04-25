@@ -364,21 +364,14 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     from ropesim.cli_v2 import v2_dispatch
     dispatch = {
-        "simulate":     cmd_simulate,
-        "anchor":       cmd_anchor,
-        "list-ropes":   cmd_list_ropes,
+        "simulate":      cmd_simulate,
+        "anchor":        cmd_anchor,
+        "list-ropes":    cmd_list_ropes,
         "validate-rope": cmd_validate_rope,
-        "sweep":        cmd_sweep,
-        **v2_dispatch(),
+        "sweep":         cmd_sweep,
     }
-
-    handler = dispatch.get(args.command)
+    handler = dispatch.get(args.command) or v2_dispatch.get(args.command)
     if handler is None:
         parser.print_help()
         return 1
-
     return handler(args)
-
-
-if __name__ == "__main__":
-    sys.exit(main())

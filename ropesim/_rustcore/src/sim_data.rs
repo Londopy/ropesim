@@ -104,8 +104,4 @@ impl SimFrameData {
 }
 
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<FailureEvent>()?;
-    m.add_class::<SimFrame>()?;
-    m.add_class::<SimFrameData>()?;
-    Ok(())
-}
+    m.add_c

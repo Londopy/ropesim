@@ -189,15 +189,13 @@ class TestAsyncAPI:
     pytestmark = pytest.mark.requires_rust
 
     def test_simulate_fall_async_returns_result(self, scenario):
-        from ropesim.simulate import simulate_fall_async
         from ropesim.fall import FallResult
-        result = asyncio.run(simulate_fall_async(scenario, 12.0))
+        result = asyncio.run(scenario.simulate_fall_async(12.0))
         assert isinstance(result, FallResult)
         assert result.peak_force_kn > 0.0
 
     def test_sweep_fall_positions_async(self, scenario):
-        from ropesim.simulate import sweep_fall_positions_async
         from ropesim.simulate import SweepResult
-        result = asyncio.run(sweep_fall_positions_async(scenario, steps=4))
+        result = asyncio.run(scenario.sweep_fall_positions_async(steps=4))
         assert isinstance(result, SweepResult)
         assert len(result.peak_forces_kn) == 4

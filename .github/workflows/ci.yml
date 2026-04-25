@@ -163,11 +163,4 @@ jobs:
         run: pip install maturin
 
       - name: Build sdist
-        run: maturin sdist --out dist
-
-      - name: Upload sdist artefact
-        uses: actions/upload-artifact@v4
-        with:
-          name: sdist
-          path: dist/*.tar.gz
-
+        run: matur

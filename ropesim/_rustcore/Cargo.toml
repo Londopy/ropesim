@@ -13,5 +13,4 @@ rayon    = "1.10"
 rapier3d = { version = "0.21", features = ["simd-stable"] }
 nalgebra = "0.33"
 
-[features]
-default = []
+[features

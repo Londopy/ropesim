@@ -561,7 +561,11 @@ def _validate_rope(args: argparse.Namespace) -> int:
         if not name:
             print("Error: --name or --spec required", file=sys.stderr)
             return 1
-        rope = Rope.from_db(name)
+        try:
+            rope = Rope.from_db(name)
+        except KeyError as e:
+            print(f"Error: rope not found: {e}", file=sys.stderr)
+            return 1
 
     violations = rope.validate_standard_compliance()
     compliant = len(violations) == 0
@@ -655,7 +659,11 @@ def _validate_system(args: argparse.Namespace) -> int:
 
 def cmd_report(args: argparse.Namespace) -> int:
     """Generate a PDF technical report for a scenario."""
-    scenario, data = _load_scenario_file(args.scenario)
+    try:
+        scenario, data = _load_scenario_file(args.scenario)
+    except (FileNotFoundError, OSError) as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
     heights = [p['height_m'] for p in data.get('protection', [])]
     if not heights:
         print("Error: scenario has no protection points", file=sys.stderr)
@@ -913,7 +921,10 @@ def cmd_haul(args: argparse.Namespace) -> int:
 
 def cmd_interactive(args: argparse.Namespace) -> int:
     import code as _code
-    import readline  # noqa: F401 -- enables history/completion
+    try:
+        import readline  # noqa: F401 -- enables history/completion on Unix
+    except ImportError:
+        pass  # readline not available on Windows — that's fine
 
     banner = """
   ropesim interactive REPL
@@ -1050,27 +1061,30 @@ def register_v2_commands(sub: argparse._SubParsersAction) -> None:
     p_rap.add_argument('--format', **FMT)
 
     # ── haul ──
-    p_haul = sub.add_parser('haul', help='Mechanical advantage haul system')
-    p_haul.add_argument('--system',     required=True,
-                        choices=['3:1','5:1','6:1','9:1','piggyback'])
-    p_haul.add_argument('--load',       type=float, required=True, metavar='KG')
-    p_haul.add_argument('--friction',   type=float, default=0.12)
-    p_haul.add_argument('--anchor-mbs', type=float, default=25.0, dest='anchor_mbs')
-    p_haul.add_argument('--format', **FMT)
+    p_hau = sub.add_parser('haul', help='Mechanical advantage haul system')
+    p_hau.add_argument('--system',     required=True, metavar='RATIO',
+                       help='System: 3:1, 5:1, 6:1, 9:1 or piggyback')
+    p_hau.add_argument('--load',       type=float, required=True, metavar='KG',
+                       help='Load mass in kg')
+    p_hau.add_argument('--friction',   type=float, default=0.10,  metavar='F',
+                       help='Friction loss per redirect (default: 0.10)')
+    p_hau.add_argument('--anchor-mbs', type=float, default=25.0,  dest='anchor_mbs',
+                       help='Anchor MBS in kN (default: 25.0)')
+    p_hau.add_argument('--format', **FMT)
 
     # ── interactive ──
     sub.add_parser('interactive', help='Python REPL with ropesim pre-loaded')
 
 
-def v2_dispatch() -> dict:
-    """Return the dispatch dict for all v2 commands."""
-    return {
-        'rope':        cmd_rope,
-        'scenario':    cmd_scenario,
-        'validate':    cmd_validate,
-        'report':      cmd_report,
-        'toprope':     cmd_toprope,
-        'rappel':      cmd_rappel,
-        'haul':        cmd_haul,
-        'interactive': cmd_interactive,
-    }
+# ── v2 command dispatch table ─────────────────────────────────────────────────
+
+v2_dispatch: dict = {
+    'rope':        cmd_rope,
+    'scenario':    cmd_scenario,
+    'validate':    cmd_validate,
+    'report':      cmd_report,
+    'toprope':     cmd_toprope,
+    'rappel':      cmd_rappel,
+    'haul':        cmd_haul,
+    'interactive': cmd_interactive,
+}

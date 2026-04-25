@@ -788,22 +788,4 @@ mod tests {
         // Pre-catch window: let the system settle / start catching
         for _ in 0..(0.3 / dt) as usize { world.step(dt); }
 
-        // Post-catch window: collect frame data and find peak
-        let frames = world.step_n((0.7 / dt) as usize, dt);
-        let peak_kn = frames.peak_anchor_force();
-
-        println!("Peak anchor force after catch: {:.3} kN", peak_kn);
-
-        assert!(peak_kn > 0.0,
-            "Expected positive anchor force after catch, got {:.3} kN", peak_kn);
-        assert!(peak_kn < 30.0,
-            "Peak {:.3} kN is unrealistically high", peak_kn);
-
-        // Verify climber has been arrested
-        let vel = world.get_climber_velocity();
-        let speed = (vel[0].powi(2) + vel[1].powi(2) + vel[2].powi(2)).sqrt();
-        println!("Final climber speed: {:.3} m/s", speed);
-        assert!(speed < 15.0,
-            "Climber still at {:.2} m/s -- rope did not arrest the fall", speed);
-    }
-}
+        // Pos

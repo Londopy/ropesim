@@ -35,9 +35,7 @@ class TestHaulSystemEnum:
 class TestComputeHaulSystemForce:
     def test_returns_haul_result(self, rustcore):
         result = rustcore.compute_haul_system_force(
-            load_kg=80.0,
-            system=rustcore.HaulSystem.ThreeToOne,
-            friction_loss=0.0,
+            80.0, rustcore.HaulSystem.ThreeToOne, 0.0
         )
         assert result is not None
 
@@ -100,11 +98,7 @@ class TestComputeHaulSystemForce:
 class TestComputeTopRopeImpact:
     def test_returns_float(self, rustcore):
         result = rustcore.compute_top_rope_impact(
-            stiffness_kn=18.0,
-            mass_kg=75.0,
-            slack_m=0.5,
-            rope_length_m=25.0,
-            friction=0.35,
+            18.0, 75.0, 0.5, 25.0, 0.35
         )
         assert isinstance(result, float)
 
@@ -141,10 +135,7 @@ class TestComputeTopRopeImpact:
 class TestComputeRappelLoad:
     def test_returns_float(self, rustcore):
         result = rustcore.compute_rappel_load(
-            mass_kg=80.0,
-            friction=0.25,
-            speed_mps=1.2,
-            sudden_stop=False,
+            80.0, 0.25, 1.2, False
         )
         assert isinstance(result, float)
 
@@ -178,9 +169,7 @@ class TestComputeRappelLoad:
 class TestComputeStaticElongation:
     def test_returns_float(self, rustcore):
         result = rustcore.compute_static_elongation_under_weight(
-            static_elong_pct=8.0,
-            load_kg=80.0,
-            length_m=30.0,
+            8.0, 80.0, 30.0
         )
         assert isinstance(result, float)
 

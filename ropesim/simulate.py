@@ -618,18 +618,4 @@ class Scenario:
         """Return a dictionary summarising the scenario setup."""
         return {
             "rope":               repr(self.rope),
-            "climber_mass_kg":    self.climber_mass_kg,
-            "belay_device":       self.belay_device.value,
-            "belay_height_m":     self.belay_height_m,
-            "protection_count":   len(self._protection),
-            "protection_heights": [p.height_m for p in self._protection],
-            "is_wet":             self.is_wet,
-            "temperature_c":      self.temperature_c,
-        }
-
-    def __repr__(self) -> str:
-        return (
-            f"Scenario(rope={self.rope.spec.name!r}, "
-            f"mass={self.climber_mass_kg}kg, "
-            f"{len(self._protection)} protection points)"
-        )
+           

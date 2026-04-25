@@ -155,6 +155,7 @@ class TestComputeEffectiveFriction:
 
 # ── solve_guide_mode_friction ─────────────────────────────────────────────────
 
+@pytest.mark.requires_rust
 class TestSolveGuideModeFriction:
     def test_returns_tuple(self):
         result = solve_guide_mode_friction(
