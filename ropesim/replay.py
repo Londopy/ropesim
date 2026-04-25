@@ -132,6 +132,6 @@ class SimulationReplay:
     def __repr__(self) -> str:
         return (
             f"SimulationReplay("
-            f"frames={self.total_frames}, "
-            f"peak={self.peak_anchor_force_kn:.2f}kN)"
+            f"frames={self.total_frames()}, "
+            f"peak={self.peak_anchor_force_kn():.2f}kN)"
         )
