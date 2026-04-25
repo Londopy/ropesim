@@ -21,4 +21,6 @@ fn _rustcore(m: &Bound<'_, PyModule>) -> PyResult<()> {
     anchor::register(m)?;
     batch::register(m)?;
     sim_data::register(m)?;
-    world::regi
+    world::register(m)?;
+    Ok(())
+}

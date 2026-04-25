@@ -557,4 +557,15 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(compute_diameter_under_load, m)?)?;
     m.add_function(wrap_pyfunction!(compute_energy_budget, m)?)?;
     m.add_function(wrap_pyfunction!(apply_wet_modifier, m)?)?;
-    m.
+    m.add_function(wrap_pyfunction!(apply_temperature_modifier, m)?)?;
+    m.add_function(wrap_pyfunction!(compute_stiffness_from_spec, m)?)?;
+    m.add_class::<EnergyBudget>()?;
+    // v2 additions
+    m.add_class::<HaulSystem>()?;
+    m.add_class::<HaulResult>()?;
+    m.add_function(wrap_pyfunction!(compute_static_elongation_under_weight, m)?)?;
+    m.add_function(wrap_pyfunction!(compute_top_rope_impact, m)?)?;
+    m.add_function(wrap_pyfunction!(compute_rappel_load, m)?)?;
+    m.add_function(wrap_pyfunction!(compute_haul_system_force, m)?)?;
+    Ok(())
+}
