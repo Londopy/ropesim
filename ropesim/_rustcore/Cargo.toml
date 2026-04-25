@@ -8,8 +8,10 @@ name       = "_rustcore"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3   = { version = "0.22", features = ["extension-module"] }
-rayon  = "1.10"
+pyo3     = { version = "0.23", features = ["extension-module"] }
+rayon    = "1.10"
+rapier3d = { version = "0.21", features = ["simd-stable"] }
+nalgebra = "0.33"
 
 [features]
 default = []

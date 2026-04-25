@@ -347,6 +347,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_sw.add_argument("--impact-force", type=float, default=None,  metavar="KN",   help="Rope impact force kN (if not using --rope)")
     p_sw.add_argument("--json",         action="store_true",                       help="Output JSON")
 
+    # ── v2 commands ──
+    from ropesim.cli_v2 import register_v2_commands
+    register_v2_commands(sub)
+
     return parser
 
 
@@ -358,12 +362,14 @@ def main(argv: Optional[list[str]] = None) -> int:
         parser.print_help()
         return 0
 
+    from ropesim.cli_v2 import v2_dispatch
     dispatch = {
         "simulate":     cmd_simulate,
         "anchor":       cmd_anchor,
         "list-ropes":   cmd_list_ropes,
         "validate-rope": cmd_validate_rope,
         "sweep":        cmd_sweep,
+        **v2_dispatch(),
     }
 
     handler = dispatch.get(args.command)

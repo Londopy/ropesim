@@ -390,6 +390,164 @@ pub fn compute_impact_force_uiaa_inner(
     compute_impact_force_uiaa(mass_kg, fall_factor, rope_stiffness_kn, belay_friction)
 }
 
+
+// ── 10. Haul system types ────────────────────────────────────────────────────
+
+/// Mechanical advantage haul system type.
+#[pyclass(eq, eq_int)]
+#[derive(Clone, Debug, PartialEq)]
+pub enum HaulSystem {
+    ThreeToOne = 0,   // 3:1
+    FiveToOne  = 1,   // 5:1
+    SixToOne   = 2,   // 6:1
+    Piggyback  = 3,   // 9:1  (3:1 compounded into another 3:1)
+}
+
+#[pymethods]
+impl HaulSystem {
+    fn __repr__(&self) -> &str {
+        match self {
+            HaulSystem::ThreeToOne => "HaulSystem.ThreeToOne (3:1)",
+            HaulSystem::FiveToOne  => "HaulSystem.FiveToOne (5:1)",
+            HaulSystem::SixToOne   => "HaulSystem.SixToOne (6:1)",
+            HaulSystem::Piggyback  => "HaulSystem.Piggyback (9:1)",
+        }
+    }
+
+    fn theoretical_ma(&self) -> f64 {
+        match self {
+            HaulSystem::ThreeToOne => 3.0,
+            HaulSystem::FiveToOne  => 5.0,
+            HaulSystem::SixToOne   => 6.0,
+            HaulSystem::Piggyback  => 9.0,
+        }
+    }
+}
+
+/// Result of a haul-system force calculation.
+#[pyclass(get_all)]
+#[derive(Clone, Debug)]
+pub struct HaulResult {
+    pub theoretical_ma:  f64,  // ideal mechanical advantage (unitless)
+    pub actual_ma:       f64,  // MA after carabiner/pulley friction losses
+    pub hauler_effort_n: f64,  // force the hauler must apply (N)
+    pub anchor_load_n:   f64,  // total force on the anchor (N)
+}
+
+#[pymethods]
+impl HaulResult {
+    fn __repr__(&self) -> String {
+        format!(
+            "HaulResult(ideal={:.0}:1, actual={:.2}:1, hauler={:.1}N, anchor={:.1}N)",
+            self.theoretical_ma, self.actual_ma,
+            self.hauler_effort_n, self.anchor_load_n,
+        )
+    }
+}
+
+// ── 11. Static elongation under body weight ──────────────────────────────────
+
+/// Elongation (m) of a rope under sustained static load.
+///
+/// The EN 892 static elongation percentage is measured at an 80 kg reference
+/// load.  For other masses we scale linearly (valid in the elastic regime).
+/// Useful for top-rope, hangdogging, and lowering scenarios.
+#[pyfunction]
+pub fn compute_static_elongation_under_weight(
+    static_elongation_pct: f64,  // EN 892 value (%)
+    load_kg: f64,
+    rope_length_m: f64,
+) -> f64 {
+    let reference_kg = 80.0_f64;
+    let scaled_pct = static_elongation_pct * (load_kg / reference_kg).max(0.0);
+    rope_length_m * (scaled_pct / 100.0)
+}
+
+// ── 12. Top-rope catch force ─────────────────────────────────────────────────
+
+/// Peak impact force (kN) for a top-rope catch with slack in the system.
+///
+/// A top-rope fall has low fall factor (rope already mostly paid out) but
+/// slack in the system still creates a meaningful dynamic load.  The fall
+/// distance is 2 × slack; the rope out is the full length from belayer to
+/// climber.
+#[pyfunction]
+pub fn compute_top_rope_impact(
+    rope_stiffness_kn: f64,   // length-normalised stiffness, kN
+    climber_mass_kg: f64,
+    slack_m: f64,             // slack in system at moment of catch
+    rope_length_m: f64,       // total rope out from belayer to climber
+    belay_friction: f64,      // 0–1 fraction absorbed by device
+) -> f64 {
+    let fall_distance = (2.0 * slack_m).max(0.01);
+    let rope_out = rope_length_m.max(0.1);
+    let fall_factor = (fall_distance / rope_out).clamp(0.0, 2.0);
+    compute_impact_force_uiaa(climber_mass_kg, fall_factor, rope_stiffness_kn, belay_friction)
+}
+
+// ── 13. Rappel anchor load ───────────────────────────────────────────────────
+
+/// Anchor load (kN) during rappel.
+///
+/// Normal descent: anchor load ≈ body weight × (1 + device_friction).
+/// Sudden stop (`sudden_stop = true`): adds an impulse from rapid
+/// deceleration, modelled as `m × v / 0.3 s` (empirical stop time).
+#[pyfunction]
+pub fn compute_rappel_load(
+    climber_mass_kg: f64,
+    device_friction: f64,    // rope-on-device friction coefficient
+    rappel_speed_mps: f64,   // descent speed before stop (m/s)
+    sudden_stop: bool,
+) -> f64 {
+    let weight_kn = climber_mass_kg * G / 1000.0;
+    // Device friction back-loads the anchor (reaction to braking friction)
+    let normal_load_kn = weight_kn * (1.0 + device_friction.clamp(0.0, 2.0));
+    if sudden_stop {
+        // Assume 0.3 s to decelerate from rappel speed to 0
+        let decel_time_s = 0.3_f64;
+        let impulse_kn = (climber_mass_kg * rappel_speed_mps / decel_time_s) / 1000.0;
+        normal_load_kn + impulse_kn
+    } else {
+        normal_load_kn
+    }
+}
+
+// ── 14. Haul system force ────────────────────────────────────────────────────
+
+/// Forces in a mechanical advantage haul system.
+///
+/// `friction_loss` is the fractional force lost at each redirecting pulley or
+/// carabiner (e.g. 0.12 for an unlubricated screw-gate, 0.04 for a pulley).
+/// Returns hauler effort required and total anchor load.
+#[pyfunction]
+pub fn compute_haul_system_force(
+    load_kg: f64,
+    system: HaulSystem,     // taken by value (cloned from Python)
+    friction_loss: f64,
+) -> HaulResult {
+    let load_n = load_kg * G;
+    let theoretical = system.theoretical_ma();
+    // Number of redirecting contacts for each system type
+    let redirections: u32 = match &system {
+        HaulSystem::ThreeToOne => 2,
+        HaulSystem::FiveToOne  => 3,
+        HaulSystem::SixToOne   => 3,
+        HaulSystem::Piggyback  => 4,
+    };
+    // Each redirection multiplies friction factor: (1 - loss)^n
+    let friction_factor = (1.0 - friction_loss.clamp(0.0, 0.5)).powi(redirections as i32);
+    let actual_ma = (theoretical * friction_factor).max(1.0);
+    let hauler_effort = load_n / actual_ma;
+    // Anchor bears the weight plus whatever the hauler applies
+    let anchor_load = load_n + hauler_effort;
+    HaulResult {
+        theoretical_ma:  theoretical,
+        actual_ma,
+        hauler_effort_n: hauler_effort,
+        anchor_load_n:   anchor_load,
+    }
+}
+
 // ── Registration helper (called from lib.rs) ─────────────────────────────────
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(compute_fall_factor, m)?)?;
@@ -402,5 +560,12 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(apply_temperature_modifier, m)?)?;
     m.add_function(wrap_pyfunction!(compute_stiffness_from_spec, m)?)?;
     m.add_class::<EnergyBudget>()?;
+    // v2 additions
+    m.add_class::<HaulSystem>()?;
+    m.add_class::<HaulResult>()?;
+    m.add_function(wrap_pyfunction!(compute_static_elongation_under_weight, m)?)?;
+    m.add_function(wrap_pyfunction!(compute_top_rope_impact, m)?)?;
+    m.add_function(wrap_pyfunction!(compute_rappel_load, m)?)?;
+    m.add_function(wrap_pyfunction!(compute_haul_system_force, m)?)?;
     Ok(())
 }

@@ -33,7 +33,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-gui = ["PySide6>=6.6"]
+gui = ["PySide6>=6.6", "vispy>=0.14", "pyopengl>=3.1"]
 dev = [
     "pytest>=7.4",
     "pytest-benchmark>=4.0",
@@ -41,6 +41,8 @@ dev = [
 ]
 all = [
     "PySide6>=6.6",
+    "vispy>=0.14",
+    "pyopengl>=3.1",
     "pytest>=7.4",
     "pytest-benchmark>=4.0",
     "maturin>=1.5",

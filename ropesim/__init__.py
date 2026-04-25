@@ -1,5 +1,5 @@
 """
-ropesim — Climbing Rope Physics Engine
+ropesim -- Climbing Rope Physics Engine
 =======================================
 
 Public API.
@@ -50,8 +50,19 @@ from ropesim.simulate import (
     ProtectionPoint,
     SweepResult,
     ZipperResult,
+    PhysicsMode,
+    ScenarioType,
+    RockFaceGeometry,
+    SimulationResult,
 )
+from ropesim.replay import SimulationReplay
 from ropesim import units, viz, standards
+
+# v2 Rust-side types exposed directly from _rustcore
+try:
+    from ropesim._rustcore import HaulSystem, HaulResult
+except ImportError:
+    pass  # _rustcore not yet compiled; graceful degradation
 
 __all__ = [
     # rope
@@ -66,8 +77,14 @@ __all__ = [
     "Sling", "SlingMaterial",
     "RockType",
     "FailureResult",
-    # scenario
+    # scenario (v1)
     "Scenario", "ProtectionPoint", "SweepResult", "ZipperResult",
+    # scenario (v2)
+    "PhysicsMode", "ScenarioType", "RockFaceGeometry", "SimulationResult",
+    # replay
+    "SimulationReplay",
+    # haul (from Rust)
+    "HaulSystem", "HaulResult",
     # modules
     "units", "viz", "standards",
 ]
