@@ -83,4 +83,8 @@ __all__ = [
     "PhysicsMode", "ScenarioType", "RockFaceGeometry", "SimulationResult",
     # replay
     "SimulationReplay",
-    # haul (from Ru
+    # haul (from Rust)
+    "HaulSystem", "HaulResult",
+    # modules
+    "units", "viz", "standards",
+]

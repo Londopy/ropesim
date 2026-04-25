@@ -411,4 +411,9 @@ class Fall:
             peak_force_lbf      = round(peak_lbf, 1),
             peak_deceleration_g = round(peak_g, 2),
             force_curve         = force_curve,
-            energy_b
+            energy_budget       = energy_budget,
+            elongation_m        = round(elongation_m, 4),
+            rope_survived       = rope_survived,
+            warnings            = warnings,
+            guide_mode_used     = guide_mode_active,
+        )
