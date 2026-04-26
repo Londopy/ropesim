@@ -640,6 +640,17 @@ def _validate_system(args: argparse.Namespace) -> int:
         violations.append(
             f"Load {load:.1f}kN exceeds 90% of bolt MBS {bolt_mbs:.1f}kN")
 
+    if getattr(args, 'format', 'text') == 'json':
+        print(json.dumps({
+            'rope':       args.rope or None,
+            'anchor':     args.anchor or None,
+            'bolt_mbs_kn': bolt_mbs,
+            'load_kn':    load,
+            'compliant':  len(violations) == 0,
+            'violations': violations,
+        }, indent=2))
+        return 0 if not violations else 1
+
     print(_hdr("SYSTEM VALIDATION"))
     print(_row('Rope',      args.rope or '—'))
     print(_row('Anchor',    args.anchor or '—'))

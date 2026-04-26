@@ -572,4 +572,17 @@ class MainWindow(QMainWindow):
                 for i, f in enumerate(result.force_curve):
                     writer.writerow([f"{i * timestep:.2f}", f"{f:.4f}"])
 
-    # ── misc ──────────────────────────────────────────────────────────────�
+    # ── misc ─────────────────────────────────────────────────────────────────
+
+    def _on_new_route(self) -> None:
+        reply = QMessageBox.question(
+            self, "New Route",
+            "Clear the current route and start fresh?",
+            QMessageBox.Yes | QMessageBox.No,
+        )
+        if reply == QMessageBox.Yes:
+            self._model.clear_gear()
+            self._results.clear()
+            self._sb.showMessage("New route — add protection to get started.")
+
+    # ── demo mode ────────────────────────────────────────────�

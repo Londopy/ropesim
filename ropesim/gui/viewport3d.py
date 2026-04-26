@@ -507,4 +507,18 @@ class Viewport3D(QWidget):
         for (px, py, pz), (fx, fy, fz) in zip(positions, forces):
             mag = math.sqrt(fx * fx + fy * fy + fz * fz)
             if mag < 0.01:
-                conti
+                continue
+            pts.extend([[px, py, pz], [px + fx * scale, py + fy * scale, pz + fz * scale]])
+        if not pts:
+            return
+        self._arrows.set_data(pos=np.array(pts, np.float32))
+        self._arrows.visible = True
+        if self._canvas:
+            self._canvas.update()
+
+    def _on_toggle_arrows(self, checked: bool) -> None:
+        self._arrows_on = checked
+        if self._arrows:
+            self._arrows.visible = checked
+        if self._canvas:
+            self._canvas.update()

@@ -466,4 +466,30 @@ When `PhysicsMode.RAPIER_3D` is requested, the rope is modelled as a chain of
 capsule rigid bodies connected by `SphericalJoint` constraints inside a full
 Rapier3D 0.21 pipeline (broad phase, narrow phase, CCD, island manager).
 
-Force estimation uses mom
+Force estimation uses momentum change: `F = m*(dv/dt - g)`.  Results are
+returned as a `SimulationResult` carrying per-frame `SimFrame` snapshots that
+can be replayed with `SimulationReplay`.
+
+---
+
+## Development
+
+```bash
+# Install dev dependencies
+pip install -e ".[dev,gui]"
+
+# Run tests (no Rust required)
+pytest -m "not requires_rust"
+
+# Run full suite (after maturin develop)
+pytest
+
+# Benchmarks
+pytest -m benchmark --benchmark-only
+```
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).

@@ -196,4 +196,10 @@ class PropertiesPanel(QWidget):
         if busy:
             self._progress.setRange(0, 0)  # indeterminate
         else:
-            self._progres
+            self._progress.setRange(0, 100)
+            self._progress.setValue(0)
+
+    # ── private ──────────────────────────────────────────────────────────────
+
+    def _emit_climber(self) -> None:
+        self.climber_changed.emit(self._mass_spin.value(), self._height_spin.value())
