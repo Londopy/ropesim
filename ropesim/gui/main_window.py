@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """MainWindow — three-panel QSplitter with menu/toolbar and live simulation."""
 from __future__ import annotations
 
@@ -585,4 +586,4 @@ class MainWindow(QMainWindow):
             self._results.clear()
             self._sb.showMessage("New route — add protection to get started.")
 
-    # ── demo mode ────────────────────────────────────────────�
+    # -- demo mode ---------------------------------------------------�
