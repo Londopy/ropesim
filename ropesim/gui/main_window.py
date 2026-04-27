@@ -586,4 +586,67 @@ class MainWindow(QMainWindow):
             self._results.clear()
             self._sb.showMessage("New route — add protection to get started.")
 
-    # -- demo mode ---------------------------------------------------�
+    # -- demo mode ---------------------------------------------------
+
+    def _run_demo(self) -> None:
+        """Load a pre-built demo route and run a fall simulation."""
+        from ropesim.anchor import Bolt, BoltType, RockType
+
+        self._model.clear_gear()
+        self._results.clear()
+
+        # Set a standard demo rope
+        names = self._model.all_rope_names()
+        demo_rope = next(
+            (n for n in names if "Beal" in n or "Opera" in n),
+            names[0] if names else None,
+        )
+        if demo_rope:
+            self._model.set_rope_by_name(demo_rope)
+            self._props.set_rope_names(names)
+
+        # Add four bolts at realistic sport-climbing heights
+        demo_gear = [
+            (2.5,  0.0,  "Bolt 1"),
+            (5.0,  0.1,  "Bolt 2"),
+            (8.0, -0.1,  "Bolt 3"),
+            (11.5, 0.0,  "Bolt 4"),
+        ]
+        for height_m, x_offset, label in demo_gear:
+            bolt = Bolt(
+                bolt_type=BoltType.GLUE_IN,
+                rated_mbs_kn=25.0,
+                rock_type=RockType.GRANITE,
+                position=(x_offset, height_m),
+            )
+            from ropesim.gui.models import GearItem
+            item = GearItem(
+                kind="bolt",
+                height_m=height_m,
+                x_offset=x_offset,
+                label=label,
+                bolt=bolt,
+            )
+            self._model.add_gear(item)
+
+        # Place climber 2 m above the last bolt
+        climber_h = 13.5
+        self._model.set_climber_height(climber_h)
+        self._canvas.set_climber_height(climber_h)
+
+        self._sb.showMessage(
+            "Demo route loaded — 4 bolts, climber at 13.5 m. Press F5 to simulate."
+        )
+
+    # -- about dialog ------------------------------------------------
+
+    def _show_about(self) -> None:
+        QMessageBox.about(
+            self,
+            "About RopeSim",
+            "<b>RopeSim</b> — Climbing Rope Physics Simulator<br><br>"
+            "Version 2.0.0<br>"
+            "Simulates lead fall forces, sweep analysis, and zipper failures.<br><br>"
+            "Physics models: UIAA 101 / EN 892 energy method + Rapier 3D.<br>"
+            "Built with Python, Rust (PyO3), Rapier, and PySide6.",
+        )�
