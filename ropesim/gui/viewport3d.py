@@ -232,7 +232,7 @@ class Viewport3D(QWidget):
         self._view.camera = TurntableCamera(
             elevation=25.0, azimuth=-60.0, fov=45.0, distance=25.0,
         )
-        self._canvas.connect(self._on_key)
+        self._canvas.events.key_press.connect(self._on_key)
         self._build_visuals()
         layout.addWidget(self._canvas.native, stretch=1)
 

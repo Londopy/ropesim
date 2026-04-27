@@ -649,4 +649,4 @@ class MainWindow(QMainWindow):
             "Simulates lead fall forces, sweep analysis, and zipper failures.<br><br>"
             "Physics models: UIAA 101 / EN 892 energy method + Rapier 3D.<br>"
             "Built with Python, Rust (PyO3), Rapier, and PySide6.",
-        )�
+        )
