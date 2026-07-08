@@ -19,12 +19,12 @@ use crate::twin_rope;
 
 fn parse_knot(name: &str) -> PyResult<KnotType> {
     KnotType::from_name(name)
-        .ok_or_else(|| PyValueError::new_err(format!("unknown knot type: {name!r}")))
+        .ok_or_else(|| PyValueError::new_err(format!("unknown knot type: {name:?}")))
 }
 
 fn parse_rock(name: &str) -> PyResult<RockType> {
     RockType::from_name(name)
-        .ok_or_else(|| PyValueError::new_err(format!("unknown rock type: {name!r}")))
+        .ok_or_else(|| PyValueError::new_err(format!("unknown rock type: {name:?}")))
 }
 
 fn parse_style(name: &str) -> PyResult<ClimbingStyle> {
@@ -32,13 +32,13 @@ fn parse_style(name: &str) -> PyResult<ClimbingStyle> {
         "sport" => Ok(ClimbingStyle::Sport),
         "trad" => Ok(ClimbingStyle::Trad),
         "boulder" => Ok(ClimbingStyle::Boulder),
-        _ => Err(PyValueError::new_err(format!("unknown style: {name!r}"))),
+        _ => Err(PyValueError::new_err(format!("unknown style: {name:?}"))),
     }
 }
 
 fn parse_device(name: &str) -> PyResult<BelayDevice> {
     BelayDevice::from_name(name)
-        .ok_or_else(|| PyValueError::new_err(format!("unknown belay device: {name!r}")))
+        .ok_or_else(|| PyValueError::new_err(format!("unknown belay device: {name:?}")))
 }
 
 // ── twin / half ropes ────────────────────────────────────────────────────────
@@ -322,11 +322,4 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(compute_abrasion_increment, m)?)?;
     m.add_function(wrap_pyfunction!(accumulate_sheath_wear, m)?)?;
     m.add_function(wrap_pyfunction!(compute_fall_probability, m)?)?;
-    m.add_function(wrap_pyfunction!(compute_cumulative_risk, m)?)?;
-    m.add_function(wrap_pyfunction!(compute_daily_exposure, m)?)?;
-    m.add_function(wrap_pyfunction!(compute_dynamic_belay_reduction, m)?)?;
-    m.add_class::<PySheathCondition>()?;
-    m.add_class::<PyCumulativeRisk>()?;
-    m.add_class::<PyDailyExposureReport>()?;
-    Ok(())
-}
+    m.add_function(wrap_py
