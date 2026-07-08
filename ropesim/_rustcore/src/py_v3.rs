@@ -322,4 +322,11 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(compute_abrasion_increment, m)?)?;
     m.add_function(wrap_pyfunction!(accumulate_sheath_wear, m)?)?;
     m.add_function(wrap_pyfunction!(compute_fall_probability, m)?)?;
-    m.add_function(wrap_py
+    m.add_function(wrap_pyfunction!(compute_cumulative_risk, m)?)?;
+    m.add_function(wrap_pyfunction!(compute_daily_exposure, m)?)?;
+    m.add_function(wrap_pyfunction!(compute_dynamic_belay_reduction, m)?)?;
+    m.add_class::<PySheathCondition>()?;
+    m.add_class::<PyCumulativeRisk>()?;
+    m.add_class::<PyDailyExposureReport>()?;
+    Ok(())
+}
