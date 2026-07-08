@@ -1,0 +1,33 @@
+---
+title: Rope database
+description: Browsing, adding, and editing ropes in the GUI.
+---
+
+## The selector
+
+The Properties panel's rope combo box searches as you type (matches
+anywhere in the name) and shows the loaded rope's vital signs underneath:
+diameter, weight, impact force, rated falls, dry treatment.
+
+Set **Falls taken** to age the rope — stiffness and impact force drift
+upward, and a retirement warning appears at 80% of rated falls.
+
+## Rope editor
+
+**Add New** or **Edit** opens the editor with every `RopeSpec` field and a
+live EN 892 / UIAA 101 compliance preview — each requirement flips ✔/✘ as
+you type:
+
+- impact force ≤ 12 kN (single) / 8 kN (half)
+- static elongation ≤ 10%, dynamic ≤ 40%
+- ≥ 5 UIAA falls
+- dynamic elongation must exceed static
+
+Saving writes to `ropes.json` — the same database file the Python library
+reads, preserving any extra fields other tools have added.
+
+<Callout type="info">
+Want your rope in the shipped database? File a
+[rope spec submission](https://github.com/Londopy/ropesim/issues/new/choose)
+with the manufacturer's spec sheet — no coding needed.
+</Callout>

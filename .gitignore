@@ -44,3 +44,21 @@ desktop.ini
 
 # Jupyter
 .ipynb_checkpoints/
+
+# ── v3 additions ──────────────────────────────
+# C++ GUI build artefacts
+gui-cpp/build/
+gui-cpp/lib/
+gui-cpp/include/ropesim.h.orig
+
+# Docs site
+docs-site/node_modules/
+docs-site/.next/
+docs-site/out/
+docs-site/data/api-data.json
+docs-site/npm-install.log
+
+# Release packaging
+*.AppImage
+*.dmg
+AppDir/

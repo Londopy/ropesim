@@ -1,0 +1,56 @@
+---
+title: Anchor API
+description: Bolts, cams, nuts, slings, and AnchorSystem.
+---
+
+## Components
+
+```python
+from ropesim import Bolt, BoltType, Cam, CamPlacement, Nut, Sling, SlingMaterial
+
+bolt = Bolt(bolt_type=BoltType.EXPANSION, mbs_kn=25.0)
+cam = Cam(mbs_kn=14.0, placement=CamPlacement.GOOD, rock_quality=0.9)
+nut = Nut(mbs_kn=10.0)
+sling = Sling(material=SlingMaterial.DYNEEMA, mbs_kn=22.0)
+```
+
+Every component computes an `effective_mbs()` — rated strength × placement
+quality × rock quality. A textbook cam keeps its rating; the same cam behind
+a flake in soft rock might carry half.
+
+## AnchorSystem
+
+```python
+from ropesim import AnchorSystem, AnchorType
+
+anchor = AnchorSystem(AnchorType.QUAD, [Bolt(), Bolt()])
+
+anchor.load_distribution(load_kn=8.0, load_angle_deg=20)
+anchor.load_sweep(load_kn=8.0, angle_start=0, angle_end=90, steps=45)
+anchor.simulate_failure(load_kn=16.0)     # → FailureResult
+anchor.safety_margins(load_kn=8.0)        # {component: margin fraction}
+anchor.is_redundant()                     # ≥ 2 load-bearing components?
+anchor.weakest_component()
+```
+
+`AnchorType` covers `SLIDING_X`, `QUAD`, `CORDELETTE`, and `SINGLE` (for
+analysing a lone piece — never build one).
+
+## Rust acceleration
+
+Distribution maths run in `_rustcore/src/anchor.rs`
+(`resolve_anchor_forces_2d`, `sliding_x_distribution`,
+`quad_anchor_distribution`, `cordelette_distribution`,
+`simulate_component_failure`) with vector force resolution. Angle sweeps
+across hundreds of steps return in microseconds, which is what makes the
+GUI's live anchor plot possible.
+
+### Edge cases
+
+- Empty bolt lists raise `ValueError` at the Rust boundary.
+- Sweeps at angles > 170° are clamped — the model would otherwise divide
+  by ~0 exactly where a real anchor would fail.
+- `simulate_failure` caps a failed component's contribution at its MBS
+  before redistributing; total collapse returns all indices failed.
+
+Full generated reference: [api/reference](/api/reference/).

@@ -1,0 +1,68 @@
+---
+title: Fall API
+description: FallConditions, Fall, FallResult, and belay devices.
+---
+
+## Basic usage
+
+```python
+from ropesim import Rope, Fall, FallConditions, BelayDevice
+
+fall = Fall(
+    rope=Rope.from_db("Mammut 9.5 Crag Classic"),
+    conditions=FallConditions(
+        climber_mass_kg=75,
+        fall_distance_m=3.0,
+        rope_out_m=12.0,
+        belay_device=BelayDevice.ATC,
+        is_wet=False,
+        temperature_c=15.0,
+    ),
+)
+
+fall.fall_factor          # 0.25
+fall.peak_force           # kN, closed-form UIAA model
+result = fall.simulate()  # full RK4 integration → FallResult
+```
+
+## FallConditions
+
+<ParamTable params={[
+  { name: 'climber_mass_kg', type: 'float', description: 'falling mass, gear included' },
+  { name: 'fall_distance_m', type: 'float', description: 'free-fall distance before the rope catches' },
+  { name: 'rope_out_m', type: 'float', description: 'rope paid out between belayer and climber' },
+  { name: 'belay_device', type: 'BelayDevice', default: 'ATC', description: 'sets friction fraction absorbed' },
+  { name: 'is_wet', type: 'bool', default: 'False', description: '+12% force when wet (EN 892)' },
+  { name: 'temperature_c', type: 'float', default: '20.0', description: 'nylon stiffens when cold' },
+]} />
+
+## Belay devices
+
+Eleven devices are modelled, including the guide-mode self-lockers whose
+friction rises with load (`compute_effective_friction` /
+`solve_guide_mode_friction`):
+
+| Device | Friction | Character |
+| --- | --- | --- |
+| ATC / Tube | 0.33–0.35 | dynamic, most rope slip |
+| Munter | 0.45 | direction-dependent |
+| GriGri | 0.55 | assisted braking, static catch |
+| Click Up / Giga Jul / Mega Jul | 0.58–0.62 | assisted tube hybrids |
+| Reverso Guide / Sum / I-Device | 0.65–0.70 | guide mode, self-locking |
+
+## FallResult
+
+`simulate()` returns peak force, elongation, deceleration, the full force
+curve, and an `EnergyBudget` partitioning PE into rope, belay-device, and
+residual energy. `fall.force_curve_numpy()` hands you the curve as a numpy
+array for your own plotting.
+
+### Edge cases
+
+- `rope_out_m <= 0` raises `ValueError` — there's no rope to catch you.
+- Fall factors are clamped to 2.0; distances implying more are geometrical
+  errors in the input, not harder falls.
+- Very small timesteps (< 0.1 ms) cost time without adding accuracy; the
+  default 1 ms resolves the peak to within ~1%.
+
+Full generated reference: [api/reference](/api/reference/).

@@ -56,6 +56,24 @@ from ropesim.simulate import (
     SimulationResult,
 )
 from ropesim.replay import SimulationReplay
+from ropesim.physics_v3 import (
+    KnotType,
+    ClimbingStyle,
+    SheathRating,
+    SheathCondition,
+    CumulativeRisk,
+    DailyExposureReport,
+    twin_rope_forces,
+    half_rope_forces,
+    knot_strength_factor,
+    cord_anchor_strength,
+    abrasion_increment,
+    accumulate_sheath_wear,
+    fall_probability,
+    cumulative_risk,
+    daily_exposure,
+    dynamic_belay_reduction,
+)
 from ropesim import units, viz, standards
 
 # v2 Rust-side types exposed directly from _rustcore
@@ -85,6 +103,14 @@ __all__ = [
     "SimulationReplay",
     # haul (from Rust)
     "HaulSystem", "HaulResult",
+    # v3 physics
+    "KnotType", "ClimbingStyle", "SheathRating",
+    "SheathCondition", "CumulativeRisk", "DailyExposureReport",
+    "twin_rope_forces", "half_rope_forces",
+    "knot_strength_factor", "cord_anchor_strength",
+    "abrasion_increment", "accumulate_sheath_wear",
+    "fall_probability", "cumulative_risk", "daily_exposure",
+    "dynamic_belay_reduction",
     # modules
     "units", "viz", "standards",
 ]

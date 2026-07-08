@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Topographic & materials theme ─────────────────────────────────────────
+   Dark by default; light mode is a [data-theme="light"] swap of the same
+   variables. Accent green is the brand: rope through moss and granite.   */
+
+:root,
+[data-theme='dark'] {
+  --bg: #0a0c0b;
+  --surface: #111413;
+  --surface-raised: #171c18;
+  --border: #242b25;
+  --accent: #7ecf45;
+  --accent-dim: #3a6020;
+  --text-primary: #d6e8d7;
+  --text-secondary: #6b7d6c;
+  --text-bright: #edf5ee;
+  --warning: #e8b84b;
+  --danger: #e05050;
+  --code-bg: #0f1410;
+}
+
+[data-theme='light'] {
+  --bg: #f4f6f2;
+  --surface: #ffffff;
+  --surface-raised: #eef1ea;
+  --border: #d5ddd2;
+  --accent: #3f8a14;
+  --accent-dim: #b9d6a4;
+  --text-primary: #23301f;
+  --text-secondary: #5f6f5c;
+  --text-bright: #101508;
+  --warning: #9a6d00;
+  --danger: #b02525;
+  --code-bg: #eef1ea;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-dm-sans), sans-serif;
+}
+
+/* Topographic contour background — layered ellipses like a summit map. */
+.topo-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.5;
+  background-image: repeating-radial-gradient(
+      ellipse 120% 90% at 80% -20%,
+      transparent 0,
+      transparent 58px,
+      color-mix(in srgb, var(--accent) 7%, transparent) 59px,
+      transparent 60px
+    ),
+    repeating-radial-gradient(
+      ellipse 100% 120% at -10% 110%,
+      transparent 0,
+      transparent 74px,
+      color-mix(in srgb, var(--accent) 5%, transparent) 75px,
+      transparent 76px
+    );
+}
+
+/* Fine grain overlay for a "materials" feel. */
+.grain::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+}
+
+/* Headings in Plex Mono, matching the GUI. */
+h1, h2, h3, h4 {
+  font-family: var(--font-plex-mono), monospace;
+  color: var(--text-bright);
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background: var(--accent-dim);
+  color: var(--text-bright);
+}
+
+/* ── Prose styling for MDX content ── */
+.prose-docs {
+  max-width: 46rem;
+  line-height: 1.75;
+}
+.prose-docs h1 { font-size: 2rem; margin: 0 0 1rem; }
+.prose-docs h2 {
+  font-size: 1.35rem;
+  margin: 2.5rem 0 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--border);
+}
+.prose-docs h3 { font-size: 1.1rem; margin: 1.75rem 0 0.5rem; }
+.prose-docs p { margin: 0.9rem 0; }
+.prose-docs a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: var(--accent-dim);
+  text-underline-offset: 3px;
+}
+.prose-docs a:hover { text-decoration-color: var(--accent); }
+.prose-docs ul, .prose-docs ol { margin: 0.9rem 0 0.9rem 1.4rem; }
+.prose-docs ul { list-style: none; }
+.prose-docs ul li::before {
+  content: '▸ ';
+  color: var(--accent);
+  margin-left: -1.2rem;
+  padding-right: 0.4rem;
+}
+.prose-docs ol { list-style: decimal; }
+.prose-docs li { margin: 0.35rem 0; }
+.prose-docs code:not(pre code) {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.86em;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  color: var(--accent);
+}
+.prose-docs table {
+  width: 100%;
+  margin: 1.2rem 0;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.prose-docs th {
+  font-family: var(--font-plex-mono), monospace;
+  text-align: left;
+  color: var(--text-secondary);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+}
+.prose-docs td {
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+  padding: 0.5rem 0.75rem;
+}
+.prose-docs blockquote {
+  border-left: 3px solid var(--accent-dim);
+  padding-left: 1rem;
+  color: var(--text-secondary);
+  margin: 1.2rem 0;
+}
+.prose-docs hr { border-color: var(--border); margin: 2rem 0; }
+
+/* Shiki blocks (theme colors come inline from shiki) */
+.prose-docs pre, pre.shiki {
+  background: var(--code-bg) !important;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  margin: 1.2rem 0;
+}
+
+/* Pagefind dialog theming */
+.pagefind-ui { --pagefind-ui-primary: var(--accent); }

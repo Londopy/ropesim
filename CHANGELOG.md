@@ -9,6 +9,67 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-07-08
+
+### Added
+
+#### Native C++ Qt6 desktop application (gui-cpp/)
+- Complete rewrite of the desktop GUI as a native Qt 6.6+ / C++20 application — no Python runtime required
+- 60 fps OpenGL 4.1 rope renderer: tube mesh with per-link tension colour gradient (blue → red)
+- `Viewport3D` — orbit/pan/zoom camera, preset views (front/side/top/isometric), raycast gear placement with surface-snapped preview
+- Rock face presets (slab, 30°/45° overhang, roof, crack, corner, arête), procedural rock textures, custom `.obj` mesh import
+- `ForcePlotWidget` — native OpenGL force plots with hover readout, zoom/pan, annotations, PNG export
+- Full three-panel UI: properties (rope/climber/environment/physics/scenario), 2D route canvas, results with SAFE/CAUTION/DANGER banner, component safety table, energy budget, anchor sweep
+- Simulation playback: scrubber with peak-force marker, 0.1×–1× speed, loop
+- Rope editor with live EN 892 / UIAA 101 compliance preview; reads/writes the shared `ropes.json`
+- `.ropesim` scenario files interoperable with the Python CLI
+- Undo/redo (QUndoStack) for gear placement
+- CSV and PDF report export
+
+#### Dual FFI architecture
+- `_rustcore/src/ffi.rs` — plain C ABI (`ropesim_*` functions) exported alongside the PyO3 bindings from the same cdylib
+- cbindgen integration via `build.rs` — regenerates `gui-cpp/include/ropesim.h` on every Rust build
+- Opaque-pointer world API for the Rapier simulation, buffer-based queries, stable enum discriminants
+- `ropesim_abi_version()` — checked by the C++ bridge at startup
+
+#### New physics (v3)
+- `twin_rope.rs` — twin-rope force sharing with inter-strand friction (energy dissipation + partial equalisation); half-rope alternate-clip model
+- `knots.rs` — strength-retention factors for 8 knots (figure-8 retrace/on-bight, bowline, clove, Munter, double fisherman's, overhand, alpine butterfly) with diameter adjustment; knotted multi-strand cord anchor strength
+- `abrasion.rs` — Archard-style sheath wear accumulator: rock abrasiveness table, force^1.3 × sliding-distance increments, NEW/GOOD/WORN/CRITICAL ratings, retirement at score ≥ 0.85
+- `risk.rs` — logistic fall-probability model (grade delta + style), cumulative risk projection, full-day multi-pitch exposure report with critical-pitch flagging
+- `belay.rs` — energy-based dynamic belayer model: mass ratio, stance, device slip, soft-catch technique (30–45 % peak-force reduction for light belayers)
+- Python API for all of the above in `ropesim.physics_v3` (re-exported at package root) with pure-Python fallbacks when the extension isn't compiled
+
+#### Terminal UI
+- `ropesim tui` — Textual app with Simulate, Ropes, and Risk screens; sparkline force curves; `[tui]` extra
+
+#### Documentation site (docs-site/)
+- Next.js 14 static export, deployed to GitHub Pages via `.github/workflows/docs.yml`
+- Topographic dark theme, GSAP hero, Framer Motion transitions, Shiki highlighting, Pagefind search (Cmd+K)
+- 22 hand-written MDX pages: quickstart, concepts (fall physics, anchors, rope specs, standards), API guides, GUI manual, CLI/TUI reference
+- Auto-generated API reference from Python docstrings (`scripts/generate-api-docs.py` → `data/api-data.json`)
+
+#### Contribution infrastructure
+- `CONTRIBUTING.md` (dev setup for all four codebases, style guides, rope-data workflow, PR checklist, label guide)
+- Issue templates: bug report, feature request, rope spec submission (no coding required)
+- PR template with physics-review flag
+- CI: lint job (ruff/black/clippy/rustfmt/clang-format), Rust unit tests, C++ Qt6 build + ctest on three OSes, docs build check, notebook execution check
+- `release.yml` — tag-triggered pipeline building Windows zip (windeployqt), macOS dmg (macdeployqt), Linux AppImage, Python wheels, PyPI publish, GitHub Release
+
+#### Notebooks & Colab
+- `colab/` — Colab-ready notebook copies (self-installing, no local files, single "Run all")
+- "Run in Colab" badge in README
+
+### Changed
+- `ropesim` console command now routes to `tui` / `cli` / `gui` (`ropesim.launcher`) — the PySide6 GUI entry point is retired
+- `Cargo.toml`: crate-type adds `rlib`, `pyo3/extension-module` moved to maturin features so `cargo test` links; cbindgen build dependency
+- `pyproject.toml`: version 3.0.0; `[gui]` extra (PySide6/vispy) removed, `[tui]` extra added; `patchnotes` in dev extras
+- CI wheels build for Python 3.10–3.12
+
+### Removed
+- PySide6 desktop GUI as the supported application (replaced by the native app; legacy code remains importable but unmaintained)
+
+
 ## [0.2.0] - 2026-04-25
 
 ### Added

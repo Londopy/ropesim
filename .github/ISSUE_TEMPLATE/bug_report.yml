@@ -1,0 +1,72 @@
+name: Bug report
+description: Something is broken or behaves unexpectedly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report! Fill in what you can — partial reports are
+        still useful.
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "Windows 11 / macOS 14 / Ubuntu 24.04"
+    validations:
+      required: true
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      placeholder: "3.12.1 (or n/a for the desktop GUI)"
+  - type: input
+    id: ropesim-version
+    attributes:
+      label: ropesim version
+      placeholder: "pip show ropesim → 3.0.0, or GUI About dialog"
+    validations:
+      required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Python library
+        - CLI
+        - TUI
+        - Desktop GUI (C++)
+        - Rust core / physics
+        - Documentation site
+        - Notebooks
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior (include tracebacks / logs)
+    validations:
+      required: true
+  - type: textarea
+    id: sim-params
+    attributes:
+      label: Simulation parameters (if relevant)
+      placeholder: |
+        rope: Beal Joker 9.1
+        climber mass: 80 kg
+        fall distance / rope out: 4 m / 8 m
+        scenario type, physics mode, etc.

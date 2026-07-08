@@ -1,0 +1,62 @@
+---
+title: Installation
+description: pip for the library, GitHub Releases for the desktop app.
+---
+
+## Python library
+
+Pre-built wheels cover Linux, macOS, and Windows for Python 3.10–3.12:
+
+```bash
+pip install ropesim
+```
+
+That gets you the physics library, the `ropesim-cli` command, and the
+terminal UI (`ropesim tui`). Everything computes through the compiled Rust
+core; if the wheel for your platform is missing, pure-Python fallbacks keep
+the API working (slower, same models).
+
+## Desktop application
+
+The v3 GUI is a **native binary** — no Python required. Download from
+[GitHub Releases](https://github.com/Londopy/ropesim/releases):
+
+| Platform | Package |
+| --- | --- |
+| Windows | `ropesim-gui-windows-x64.zip` |
+| macOS | `ropesim-gui-macos.dmg` |
+| Linux | `ropesim-gui-linux-x86_64.AppImage` |
+
+## From source
+
+Building from source needs a Rust toolchain (and Qt 6.6+ for the GUI):
+
+```bash
+git clone https://github.com/Londopy/ropesim.git
+cd ropesim
+pip install maturin
+maturin develop --release   # compiles the Rust core, installs editable
+```
+
+For the GUI:
+
+```bash
+cargo build --release --manifest-path ropesim/_rustcore/Cargo.toml
+cd gui-cpp
+cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build
+```
+
+<Callout type="info">
+Building the Rust core also regenerates `gui-cpp/include/ropesim.h` via
+cbindgen, so the C FFI header can never drift from the Rust source.
+</Callout>
+
+## Optional extras
+
+```bash
+pip install "ropesim[dev]"    # pytest, maturin, benchmarks
+```
+
+The v2 `[gui]` extra (PySide6) is gone in v3 — the desktop app replaced it.
+
+Next: [Quickstart](/quickstart/).

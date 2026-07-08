@@ -1,0 +1,50 @@
+---
+title: Running simulations
+description: Analytical vs Rapier, results, playback, export.
+---
+
+## Analytical (F5)
+
+Instant. Computes fall factor from climber height vs last piece, peak force
+through the UIAA model with all modifiers (wet, temperature, rope wear,
+dynamic belayer), the RK4 force curve, energy budget, and the per-component
+safety table. Use it for iteration — every parameter change can re-run in
+real time (enable auto-run in Preferences).
+
+## Rapier 3D (F6)
+
+Builds the full rigid-body world: rope as a capsule chain with your chosen
+link spacing, climber, gear, belayer, and the rock face trimesh. Records
+~2.5 s of simulation into a replay.
+
+- **Link spacing** — fine (0.10 m) for accuracy, coarse (0.50 m) for speed.
+- **Timestep** — 1/240 s default; 1/480 s for stiff systems.
+
+## Reading the results panel
+
+The banner is the headline: **SAFE** (green), **CAUTION** (amber — peak
+above 8 kN or any component past 50% of MBS), **DANGER** (red — peak above
+10 kN or a component past 80%). The table below shows per-piece force, MBS,
+and margin with a status dot each.
+
+The force curve annotates the peak; hover for exact values, scroll to zoom,
+double-click to reset. The energy bar shows where the fall's energy went —
+a healthy catch puts most of it in the rope.
+
+## Playback
+
+After a Rapier run: play/pause, 0.1×–1× speed, loop, and a scrubber with
+the peak frame marked in red. Step to the peak and look at *where* the rope
+is loaded — tension colour tells you which piece is working.
+
+## Export
+
+- **PDF report** — summary numbers, component table, force-curve sparkline.
+- **CSV** — key-value summary plus the full force curve for your own tools.
+- **Copy summary** — one-liner to the clipboard.
+
+<Callout type="warning">
+Rapier peak forces are estimated from climber momentum change and can read
+±15% against the analytical model. When they disagree wildly, believe the
+analytical number and check your geometry.
+</Callout>

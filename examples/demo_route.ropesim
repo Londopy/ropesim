@@ -1,0 +1,16 @@
+{
+    "version": 3,
+    "rope_name": "Beal Joker 9.1 Dry",
+    "climber_mass_kg": 78.0,
+    "scenario_type": "Lead",
+    "route_angle_deg": 95.0,
+    "climber_height_m": 14.0,
+    "last_piece_height_m": 11.5,
+    "gear": [
+        { "type": 1, "x": 0.1, "y": 3.0,  "z": 0.0, "mbs_kn": 25.0, "quality": 1.0 },
+        { "type": 1, "x": -0.2, "y": 6.0,  "z": 0.0, "mbs_kn": 25.0, "quality": 1.0 },
+        { "type": 2, "x": 0.3, "y": 8.75, "z": 0.0, "mbs_kn": 14.0, "quality": 0.85 },
+        { "type": 3, "x": 0.0, "y": 10.2, "z": 0.0, "mbs_kn": 10.0, "quality": 0.7 },
+        { "type": 1, "x": -0.1, "y": 11.5, "z": 0.0, "mbs_kn": 25.0, "quality": 1.0 }
+    ]
+}

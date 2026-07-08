@@ -1,7 +1,9 @@
 // ropesim/_rustcore/src/lib.rs
 //
 // PyO3 module registration — wires physics.rs, anchor.rs, batch.rs,
-// sim_data.rs, and world.rs into the `ropesim._rustcore` Python extension.
+// sim_data.rs, world.rs and the v3 modules into the `ropesim._rustcore`
+// Python extension.  The same cdylib also exports the plain C FFI (ffi.rs)
+// consumed by the C++ GUI.
 
 use pyo3::prelude::*;
 
@@ -10,6 +12,17 @@ mod anchor;
 mod batch;
 mod sim_data;
 mod world;
+
+// v3 — pure-Rust physics modules (shared by PyO3 and the C FFI)
+mod twin_rope;
+mod knots;
+mod abrasion;
+mod risk;
+mod belay;
+
+// v3 — frontends
+mod py_v3;
+pub mod ffi;
 
 /// ropesim._rustcore
 ///
@@ -22,5 +35,6 @@ fn _rustcore(m: &Bound<'_, PyModule>) -> PyResult<()> {
     batch::register(m)?;
     sim_data::register(m)?;
     world::register(m)?;
+    py_v3::register(m)?;
     Ok(())
 }

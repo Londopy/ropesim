@@ -1,21 +1,36 @@
 # RopeSim
 
-**Climbing rope physics engine and GUI simulator**
+**Climbing rope physics engine — Python library, CLI, TUI, and native 3D desktop app**
 
 RopeSim models lead-fall dynamics using a damped spring / RK4 integration in
-Rust, exposed to Python via PyO3/Maturin.  It ships a full Python API, an
-expanded CLI with 20+ commands, a PySide6 desktop GUI with a 3D Vispy viewport,
-Jupyter notebook integration, and an optional Rapier3D full-physics simulation
-mode.
+Rust. One physics core, four frontends: a full Python API (PyO3/Maturin), a
+CLI with 20+ commands, a Textual terminal UI, and — new in v3 — a **native
+C++ Qt6 desktop application** with a 60 fps OpenGL viewport, consuming the
+same Rust core over a plain C FFI. Rapier3D full-physics mode, Jupyter
+integration, and a hosted documentation site round it out.
 
 [![CI](https://github.com/Londopy/ropesim/actions/workflows/ci.yml/badge.svg)](https://github.com/Londopy/ropesim/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/badge/docs-londopy.github.io%2Fropesim-7ecf45)](https://londopy.github.io/ropesim/)
 [![PyPI](https://img.shields.io/pypi/v/ropesim)](https://pypi.org/project/ropesim/)
 [![Python 3.10+](https://img.shields.io/pypi/pyversions/ropesim)](https://pypi.org/project/ropesim/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Londopy/ropesim/blob/main/colab/01_basic_fall_simulation.ipynb)
 
 ---
 
 ## Features
+
+**New in v3**
+
+- **Native desktop app (C++ / Qt6)** — single-binary installers for Windows, macOS, and Linux; 60 fps OpenGL rope renderer with tension heatmap, raycast gear placement, native interactive force plots, simulation playback with scrubber
+- **Dual FFI** — the Rust core exports a plain C ABI (cbindgen) alongside PyO3; `gui-cpp/include/ropesim.h` regenerates on every build
+- **Twin & half rope physics** — inter-strand friction, load sharing, alternate-clip model
+- **Knot strength reduction** — 8 knots with published pull-test factors + knotted cordelette strength
+- **Sheath abrasion accumulator** — Archard-style wear from rope-over-rock contact, per rock type, with retirement projection
+- **Fall probability & daily exposure** — grade-delta logistic model, cumulative rope-life projection across a multi-pitch day
+- **Full dynamic belayer** — mass ratio, stance, device slip, and soft-catch technique (30–45 % force reduction)
+- **Terminal UI** — `ropesim tui` (Textual): simulate, browse the database, project risk
+- **Docs site** — [londopy.github.io/ropesim](https://londopy.github.io/ropesim/) with generated API reference
 
 - **UIAA 101 / EN 892** impact-force model with belay-device friction, wet-rope modifier, and temperature correction
 - **RK4 force-time curve** — full damped spring integration in Rust for accurate energy modelling
@@ -40,10 +55,15 @@ mode.
 ### Pre-built wheel (recommended)
 
 ```bash
-pip install ropesim                  # physics library + CLI only
-pip install "ropesim[gui]"           # + PySide6 GUI (2D canvas)
-pip install "ropesim[gui,vispy]"     # + 3D Vispy viewport
+pip install ropesim                  # physics library + CLI
+pip install "ropesim[tui]"           # + terminal UI (Textual)
 ```
+
+### Desktop application (v3 — no Python required)
+
+Download the native app from
+[GitHub Releases](https://github.com/Londopy/ropesim/releases):
+`.zip` (Windows), `.dmg` (macOS), or `.AppImage` (Linux).
 
 Or grab everything at once:
 
@@ -384,17 +404,27 @@ machine-readable output.
 
 ## GUI
 
+The v3 desktop app is a **native C++ Qt6 application** (the PySide6 GUI is
+retired). Grab it from [Releases](https://github.com/Londopy/ropesim/releases)
+or build from source:
+
 ```bash
-ropesim          # launch the desktop GUI (requires pip install "ropesim[gui]")
+cargo build --release --manifest-path ropesim/_rustcore/Cargo.toml
+cd gui-cpp && cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build
+./build/ropesim-gui
+```
+
+```bash
+ropesim tui      # terminal UI
+ropesim gui      # where to get the desktop app
 ```
 
 ### Demo mode
 
-The fastest way to see everything in action: click **Demo Route** in the left
-panel (or press `F8`).
-
-It automatically builds a realistic mixed trad/sport route, runs a fall
-simulation and a full position sweep, and mirrors the result to the 3D viewport.
+The fastest way to see everything in action: **File → Open Scenario** and load
+`examples/demo_route.ropesim`, then press `F6` (Rapier 3D run). You get a
+realistic mixed sport route, a recorded fall replay in the 3D viewport, force
+arrows on every piece, and a full results panel. `F8` sweeps the anchor angle.
 
 **Manual workflow:**
 1. Select a rope from the left panel

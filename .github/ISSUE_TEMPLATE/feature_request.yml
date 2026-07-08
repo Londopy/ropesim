@@ -1,0 +1,34 @@
+name: Feature request
+description: Suggest new functionality or a model improvement
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: What are you trying to do that ropesim can't do today?
+    validations:
+      required: true
+  - type: textarea
+    id: domain-context
+    attributes:
+      label: Climbing context
+      description: |
+        What real-world climbing scenario does this model or feature
+        represent? (e.g. simul-climbing, big-wall hauling, factor-2 onto a
+        belay, canyoning rappels…)
+    validations:
+      required: true
+  - type: textarea
+    id: proposed-api
+    attributes:
+      label: Proposed API (optional)
+      description: If you have a shape in mind, sketch it.
+      render: python
+  - type: textarea
+    id: sources
+    attributes:
+      label: Sources
+      description: |
+        For physics features: published test data, papers, or standards the
+        model could be built on.

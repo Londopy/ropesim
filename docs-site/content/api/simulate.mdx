@@ -1,0 +1,80 @@
+---
+title: Scenario API
+description: Full routes with protection, sweeps, zippers, and Rapier 3D.
+---
+
+## Building a route
+
+```python
+from ropesim import Rope, Scenario, AnchorSystem, AnchorType, Bolt, BelayDevice
+
+rope = Rope.from_db("Sterling Evolution Velocity 9.8")
+bolt_anchor = AnchorSystem(AnchorType.SINGLE, [Bolt()])
+
+scenario = Scenario(
+    rope,
+    climber_mass_kg=72,
+    belay_device=BelayDevice.GRIGRI,
+    is_wet=False,
+    temperature_c=18.0,
+)
+scenario.add_protection(3.0, bolt_anchor, label="bolt 1")
+scenario.add_protection(6.5, bolt_anchor, label="bolt 2")
+scenario.add_protection(10.0, bolt_anchor, label="bolt 3")
+```
+
+## Running simulations
+
+```python
+from ropesim import PhysicsMode
+
+# analytical — instant
+result = scenario.simulate_fall(climber_height_m=12.0)
+result.peak_force_kn
+
+# Rapier 3D — rope as a capsule-chain rigid body simulation
+result3d = scenario.simulate_fall(12.0, mode=PhysicsMode.RAPIER_3D)
+
+from ropesim import SimulationReplay
+replay = SimulationReplay(result3d.frame_data)   # frame-by-frame playback
+
+# sweep every fall position on the pitch (parallel via Rayon)
+sweep = scenario.sweep_fall_positions()
+sweep.worst_height_m, sweep.worst_peak_kn
+
+# progressive protection failure from the top down
+zipper = scenario.simulate_zipper(climber_height_m=12.0)
+```
+
+## Rock faces
+
+```python
+from ropesim import RockFaceGeometry
+
+face = RockFaceGeometry.overhang(angle_deg=30)
+face = RockFaceGeometry.from_obj("el_cap_pitch12.obj", friction=0.55)
+scenario = Scenario(rope, rock_face=face)
+```
+
+The face becomes a trimesh collider in Rapier mode — pendulums, ledge
+strikes, and rope-over-edge friction all interact with it.
+
+### Choosing a physics mode
+
+| | Analytical | Rapier 3D |
+| --- | --- | --- |
+| speed | microseconds | ~seconds |
+| output | peak numbers + force curve | full frame replay |
+| pendulums / ledges | no | yes |
+| best for | sweeps, optimisation, CI | visualisation, geometry effects |
+
+### Edge cases
+
+- A fall with no protection below the climber runs the full factor-2 onto
+  the belay — the scenario doesn't stop you; the results panel will.
+- `sweep_fall_positions` skips heights below the first piece by default.
+- Rapier force estimates come from climber momentum change
+  (`F = m·Δv/Δt − mg`), so expect ±15% versus analytical peaks; that's
+  inherent to rigid-body estimation, not a bug.
+
+Full generated reference: [api/reference](/api/reference/).

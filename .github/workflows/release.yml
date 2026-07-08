@@ -1,0 +1,183 @@
+# Release pipeline: on a version tag (v*), build the C++ GUI for all three
+# platforms, build Python wheels, publish to PyPI, and attach everything to a
+# GitHub Release.
+
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  # ── Desktop GUI binaries ─────────────────────────────────────────────────
+  build-windows:
+    name: GUI / Windows (NSIS-free zip)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with: { workspaces: ropesim/_rustcore }
+      - name: Build Rust core
+        run: cargo build --release --manifest-path ropesim/_rustcore/Cargo.toml
+      - uses: jurplel/install-qt-action@v4
+        with: { version: "6.6.*" }
+      - name: Build GUI
+        run: |
+          cmake -S gui-cpp -B gui-cpp/build -DCMAKE_BUILD_TYPE=Release
+          cmake --build gui-cpp/build --config Release
+      - name: Bundle Qt DLLs + Rust core
+        shell: pwsh
+        run: |
+          $out = "ropesim-gui-windows-x64"
+          New-Item -ItemType Directory -Path $out
+          Copy-Item gui-cpp/build/Release/ropesim-gui.exe $out/ -ErrorAction SilentlyContinue
+          if (!(Test-Path "$out/ropesim-gui.exe")) { Copy-Item gui-cpp/build/ropesim-gui.exe $out/ }
+          Copy-Item target/release/_rustcore.dll $out/ropesim.dll
+          Copy-Item -Recurse gui-cpp/shaders $out/shaders
+          Copy-Item -Recurse gui-cpp/assets $out/assets
+          windeployqt "$out/ropesim-gui.exe"
+          Compress-Archive -Path $out -DestinationPath "$out.zip"
+      - uses: actions/upload-artifact@v4
+        with: { name: gui-windows, path: ropesim-gui-windows-x64.zip }
+
+  build-macos:
+    name: GUI / macOS (.dmg)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with: { workspaces: ropesim/_rustcore }
+      - name: Build Rust core
+        run: cargo build --release --manifest-path ropesim/_rustcore/Cargo.toml
+      - uses: jurplel/install-qt-action@v4
+        with: { version: "6.6.*" }
+      - name: Build GUI
+        run: |
+          cmake -S gui-cpp -B gui-cpp/build -DCMAKE_BUILD_TYPE=Release
+          cmake --build gui-cpp/build
+      - name: Bundle .app + dmg
+        run: |
+          APP=gui-cpp/build/ropesim-gui.app
+          mkdir -p $APP/Contents/MacOS $APP/Contents/Frameworks || true
+          if [ ! -d "$APP" ]; then
+            mkdir -p ropesim-gui.app/Contents/MacOS
+            cp gui-cpp/build/ropesim-gui ropesim-gui.app/Contents/MacOS/
+            APP=ropesim-gui.app
+          fi
+          cp target/release/lib_rustcore.dylib $APP/Contents/Frameworks/libropesim.dylib || true
+          cp -R gui-cpp/shaders $APP/Contents/MacOS/shaders
+          cp -R gui-cpp/assets  $APP/Contents/MacOS/assets
+          macdeployqt $APP -dmg || hdiutil create -volname ropesim -srcfolder $APP ropesim-gui.dmg
+          mv *.dmg ropesim-gui-macos.dmg 2>/dev/null || mv gui-cpp/build/*.dmg ropesim-gui-macos.dmg
+        # Code signing requires an Apple Developer cert; add
+        # APPLE_CERT secrets and a codesign step when available.
+      - uses: actions/upload-artifact@v4
+        with: { name: gui-macos, path: ropesim-gui-macos.dmg }
+
+  build-linux:
+    name: GUI / Linux (AppImage)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with: { workspaces: ropesim/_rustcore }
+      - name: Build Rust core
+        run: cargo build --release --manifest-path ropesim/_rustcore/Cargo.toml
+      - uses: jurplel/install-qt-action@v4
+        with: { version: "6.6.*" }
+      - name: Install deps
+        run: sudo apt-get update -q && sudo apt-get install -y libgl1-mesa-dev libglm-dev libfuse2
+      - name: Build GUI
+        run: |
+          cmake -S gui-cpp -B gui-cpp/build -DCMAKE_BUILD_TYPE=Release
+          cmake --build gui-cpp/build
+      - name: Package AppImage
+        run: |
+          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          chmod +x linuxdeploy*.AppImage
+          mkdir -p AppDir/usr/bin AppDir/usr/lib
+          cp gui-cpp/build/ropesim-gui AppDir/usr/bin/
+          cp target/release/lib_rustcore.so AppDir/usr/lib/libropesim.so
+          cp -R gui-cpp/shaders AppDir/usr/bin/shaders
+          cp -R gui-cpp/assets  AppDir/usr/bin/assets
+          cat > ropesim.desktop <<EOF
+          [Desktop Entry]
+          Type=Application
+          Name=ropesim
+          Exec=ropesim-gui
+          Icon=ropesim
+          Categories=Science;
+          EOF
+          cp gui-cpp/assets/icons/run.svg ropesim.svg
+          ./linuxdeploy-x86_64.AppImage --appdir AppDir \
+            -d ropesim.desktop -i ropesim.svg --plugin qt --output appimage
+          mv ropesim*.AppImage ropesim-gui-linux-x86_64.AppImage
+      - uses: actions/upload-artifact@v4
+        with: { name: gui-linux, path: ropesim-gui-linux-x86_64.AppImage }
+
+  # ── Python wheels ─────────────────────────────────────────────────────────
+  build-wheels:
+    name: Wheels / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - uses: PyO3/maturin-action@v1
+        with:
+          args: --release --out dist --interpreter python3.10 python3.11 python3.12
+          sccache: true
+          manylinux: ${{ runner.os == 'Linux' && 'auto' || 'off' }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: dist/*.whl
+
+  # ── Publish ───────────────────────────────────────────────────────────────
+  publish-pypi:
+    name: Publish to PyPI
+    needs: [build-wheels]
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write   # trusted publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { pattern: "wheels-*", path: dist, merge-multiple: true }
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with: { packages-dir: dist }
+
+  create-release:
+    name: GitHub Release
+    needs: [build-windows, build-macos, build-linux, build-wheels]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: artifacts, merge-multiple: true }
+      - name: Generate SHA256 checksums
+        run: |
+          cd artifacts
+          find . -type f \( -name '*.zip' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.whl' \) \
+            -exec sh -c 'sha256sum "$1" | sed "s|  ./.*/|  |;s|  ./|  |"' _ {} \; > SHA256SUMS.txt
+          echo "── SHA256SUMS.txt ──"
+          cat SHA256SUMS.txt
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/**/*.zip
+            artifacts/**/*.dmg
+            artifacts/**/*.AppImage
+            artifacts/**/*.whl
+            artifacts/SHA256SUMS.txt
+          generate_release_notes: true

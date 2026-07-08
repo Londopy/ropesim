@@ -1,0 +1,47 @@
+name: Build and Deploy Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs-site/**"
+      - "ropesim/**/*.py" # rebuild if docstrings change
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+
+      - name: Install ropesim deps (for docstring extraction)
+        run: pip install numpy pydantic matplotlib
+
+      - name: Generate API docs JSON
+        run: python docs-site/scripts/generate-api-docs.py
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: docs-site/package-lock.json
+
+      - name: Install deps
+        run: cd docs-site && npm ci
+
+      - name: Build static site (next build + pagefind index)
+        run: cd docs-site && npm run build
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs-site/out

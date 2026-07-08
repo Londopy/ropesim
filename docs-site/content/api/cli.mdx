@@ -1,0 +1,58 @@
+---
+title: CLI reference
+description: Every ropesim-cli subcommand.
+---
+
+Installed as `ropesim-cli` (the bare `ropesim` command launches the GUI, and
+`ropesim tui` the terminal UI).
+
+## rope — database management
+
+```bash
+ropesim-cli rope list --manufacturer Beal --max-diameter 9.2
+ropesim-cli rope show "Beal Opera 8.5 Dry"
+ropesim-cli rope compare "Beal Opera 8.5 Dry" "Beal Joker 9.1 Dry"
+ropesim-cli rope add                 # interactive
+ropesim-cli rope import my_rope.json
+ropesim-cli rope retire --name "Beal Opera 8.5 Dry" --falls 6
+```
+
+## scenario — route files
+
+```bash
+ropesim-cli scenario build           # interactive .ropesim builder
+ropesim-cli scenario run route.ropesim --height 16
+ropesim-cli scenario zipper route.ropesim --height 16
+ropesim-cli scenario sweep route.ropesim
+```
+
+`.ropesim` files are plain JSON, shared with the desktop GUI — build a route
+in the app, sweep it in CI.
+
+## validate — compliance checks
+
+```bash
+ropesim-cli validate rope --name "Beal Opera 8.5 Dry"
+ropesim-cli validate scenario route.ropesim
+ropesim-cli validate system          # install/core sanity check
+```
+
+## Specialised calculators
+
+```bash
+ropesim-cli toprope --rope "Beal Joker 9.1 Dry" --mass 80 --slack 1.5
+ropesim-cli rappel --mass 90 --speed 2 --sudden-stop
+ropesim-cli haul --system 3:1 --load 95 --friction 0.12
+```
+
+## report & interactive
+
+```bash
+ropesim-cli report route.ropesim -o report.pdf   # PDF technical report
+ropesim-cli interactive                          # REPL with ropesim loaded
+```
+
+Most commands accept `--json` for machine-readable output — the TUI and
+external tooling consume the same interface.
+
+Next: [the TUI](/tui/).

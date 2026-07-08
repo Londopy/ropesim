@@ -1,0 +1,95 @@
+---
+title: Fall physics
+description: The UIAA fall factor model, explained from first principles.
+---
+
+## The fall factor
+
+The severity of a climbing fall is governed not by how far you fall, but by
+the ratio of fall distance to the rope available to absorb it:
+
+```
+fall factor  f = fall_distance / rope_out
+```
+
+Fall 4 m on 8 m of rope and f = 0.5. Fall 4 m on 2 m of rope — say, straight
+onto the belay with no protection — and f = 2.0, the theoretical maximum and
+the geometry the EN 892 drop test approximates (5 m fall on 2.82 m of rope,
+f ≈ 1.77).
+
+ropesim clamps the factor to [0, 2] and rejects `rope_out <= 0`:
+
+```python
+from ropesim._rustcore import compute_fall_factor
+compute_fall_factor(5.0, 2.82)   # 1.773
+```
+
+## Peak impact force
+
+Treat the rope as a spring and conserve energy through the catch:
+
+```
+F_peak = mg + sqrt( (mg)² + 2·mg·f·k )
+```
+
+where `k` is the **length-normalised stiffness** (kN). Rope length cancels
+out — force depends only on the fall factor. This is the key insight behind
+the whole UIAA framework: a 2 m fall near the belay can hurt more than a
+20 m whipper high on the pitch.
+
+ropesim back-calculates `k` for each rope from its published EN 892 impact
+force, so database ropes reproduce their spec-sheet numbers exactly under
+test conditions.
+
+## The force-time curve
+
+The closed-form peak assumes an undamped spring. For the actual force
+history ropesim integrates a damped spring ODE with RK4 in Rust:
+
+```
+dδ/dt = v
+dv/dt = g − (kδ + cv)/m     while the rope is taut
+```
+
+with damping from the dimensionless ratio ζ (typically 0.05–0.25 for
+dynamic ropes). The integration runs at your chosen timestep until the rope
+goes slack after the first bounce.
+
+```python
+result = fall.simulate()
+curve = fall.force_curve_numpy()   # kN per timestep
+```
+
+## Modifiers
+
+| Modifier | Effect | Source |
+| --- | --- | --- |
+| Wet rope | +12% peak force | EN 892 wet test allowance |
+| Temperature | stiffer below 20 °C, +2%/°C below 0 °C | Leech (2002), UIAA |
+| Belay device | friction fraction absorbed, 0.33 (tube) – 0.70 (I-Device) | device test data |
+| Rope wear | up to +20% stiffness at end of rated falls | nylon fatigue data |
+| Dynamic belayer | ×0.55–1.0 force reduction | Pavier (1998) — see below |
+
+## The dynamic belayer (v3)
+
+A belayer who gets lifted — or deliberately jumps into the catch — absorbs
+real energy. v3 models this explicitly from the climber/belayer mass ratio,
+stance, device slip, and technique:
+
+```python
+from ropesim import dynamic_belay_reduction
+
+# 55 kg belayer, 80 kg climber, tube device, deliberate soft catch:
+dynamic_belay_reduction(80, 55, "atc", soft_catch_technique=True)  # ≈ 0.66
+```
+
+A soft catch can cut peak force by 30–45% for a light belayer — often the
+difference between slamming into the wall and a gentle swing.
+
+<Callout type="info">
+Every function here prefers the compiled Rust core and falls back to an
+identical pure-Python model when the extension isn't built.
+</Callout>
+
+Related: [Rope specs](/concepts/rope-specs/) ·
+[Standards](/concepts/standards/) · [Fall API](/api/fall/)

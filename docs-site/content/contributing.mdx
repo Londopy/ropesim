@@ -1,0 +1,34 @@
+---
+title: Contributing
+description: How to help — code, rope data, physics review, docs.
+---
+
+The full guide lives in
+[`CONTRIBUTING.md`](https://github.com/Londopy/ropesim/blob/main/CONTRIBUTING.md).
+Short version:
+
+## No code required
+
+- **Rope specs** — file a [rope spec submission](https://github.com/Londopy/ropesim/issues/new/choose)
+  with the manufacturer's EN 892 sheet.
+- **Physics review** — if you're a guide, gear manufacturer, or rescue
+  professional and a model looks wrong, open an issue with the `physics`
+  label. Test data beats theory.
+
+## Code
+
+```bash
+git clone https://github.com/Londopy/ropesim.git && cd ropesim
+pip install maturin && maturin develop --release
+python -m pytest tests/ -m "not benchmark"
+cargo test --manifest-path ropesim/_rustcore/Cargo.toml
+```
+
+Style: `ruff`/`black` (Python), `rustfmt`/`clippy` (Rust), `clang-format`
+(C++). Physics changes need a cited source and domain review.
+
+## Docs
+
+This site is `docs-site/` — Next.js static export, MDX content in
+`content/`, API reference generated from docstrings. `npm run dev` and
+edit away.

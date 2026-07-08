@@ -1,0 +1,74 @@
+---
+title: Anchor systems
+description: Sliding-X, quad, and cordelette equalisation — and when they fail.
+---
+
+## Force multiplication by angle
+
+Two bolts sharing a load do **not** each see half of it unless the sling
+legs are parallel. For a self-equalising anchor:
+
+```
+F_bolt = F_load / (2 · cos(θ/2))
+```
+
+| Leg angle θ | Per-bolt force |
+| --- | --- |
+| 0° | 0.50 × load |
+| 60° | 0.58 × load |
+| 120° | **1.00 × load** |
+| 170° | 11.5 × load |
+
+Past 120° every bolt sees more than the whole load. ropesim clamps at 170°
+because the maths (and the anchor) fall apart.
+
+## The three classic rigs
+
+```python
+from ropesim import AnchorSystem, AnchorType, Bolt
+
+anchor = AnchorSystem(AnchorType.SLIDING_X, [Bolt(), Bolt()])
+forces = anchor.load_distribution(load_kn=8.0, load_angle_deg=15)
+margins = anchor.safety_margins(load_kn=8.0)
+```
+
+**Sliding-X** — self-equalising: both bolts always see equal force, but the
+anchor extends if a piece blows, shock-loading the survivor.
+
+**Quad** — limiter knots cap the effective angle at ~60°, trading perfect
+equalisation for bounded extension. ropesim models this as an angle clamp.
+
+**Cordelette** — fully static: no extension, but when the load shifts off
+the tied direction one arm takes most of the force.
+
+## Progressive failure
+
+`simulate_failure` walks the cascade: any component loaded past its
+effective MBS fails, its load redistributes to survivors, repeat until
+stable or bare rock:
+
+```python
+result = anchor.simulate_failure(load_kn=14.0)
+result.failed_indices      # which pieces blew
+result.cascade_occurred    # did one failure trigger another?
+```
+
+Component MBS values account for placement quality — a cam at
+`quality=0.5` in flaring sandstone carries half its rated strength
+(see `Cam.effective_mbs`).
+
+## Knotted cord strength (v3)
+
+Every knot in your cordelette costs strength. v3 quantifies it:
+
+```python
+from ropesim import knot_strength_factor, cord_anchor_strength
+
+knot_strength_factor("overhand_on_bight", 7.0)      # ≈ 0.66
+cord_anchor_strength(14.0, "overhand_on_bight", 3)  # 3-strand master point, kN
+```
+
+Factors come from DMM / Black Diamond QC Lab / UIAA pull tests; strands
+share at ~92% efficiency per added strand.
+
+Related: [Anchor API](/api/anchor/) · [Fall physics](/concepts/fall-physics/)

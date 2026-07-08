@@ -524,3 +524,59 @@ print(textwrap.dedent(cli_examples))
 print("\n" + "═" * 70)
 print("  Demo complete. Check the demo_*.png files for the plots.")
 print("═" * 70 + "\n")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# v3 — NEW PHYSICS
+# ══════════════════════════════════════════════════════════════════════════════
+
+section("v3 physics: twin ropes, knots, abrasion, risk, dynamic belay")
+
+from ropesim import (
+    twin_rope_forces, half_rope_forces,
+    knot_strength_factor, cord_anchor_strength,
+    abrasion_increment, accumulate_sheath_wear, SheathCondition,
+    fall_probability, cumulative_risk, daily_exposure,
+    dynamic_belay_reduction,
+)
+
+sub("Twin & half ropes")
+fa, fb = twin_rope_forces(20.0, 20.0, mass_kg=80, fall_factor=1.0,
+                          inter_rope_friction=0.2)
+print(f"  twin pair, ff 1.0     → {fa:.2f} / {fb:.2f} kN per strand")
+ha, hb = half_rope_forces(15.0, 15.0, 80, 1.0, active_rope=0)
+print(f"  half ropes (A active) → {ha:.2f} / {hb:.2f} kN")
+
+sub("Knot strength")
+for knot in ("figure_eight_retrace", "bowline", "clove_hitch", "overhand_on_bight"):
+    print(f"  {knot:<22} keeps {knot_strength_factor(knot, 9.5):.0%} of MBS")
+print(f"  3-strand cordelette (7 mm, overhand): "
+      f"{cord_anchor_strength(14.0, 'overhand_on_bight', 3):.1f} kN")
+
+sub("Sheath abrasion")
+cond = SheathCondition()
+inc = abrasion_increment("granite", contact_force_kn=5.0,
+                         contact_duration_s=0.4, rope_velocity_mps=2.0)
+for _ in range(10):
+    cond = accumulate_sheath_wear(cond, inc, sheath_pct=38.0)
+print(f"  10 loaded granite contacts → score {cond.abrasion_score:.3f} "
+      f"({cond.visual_rating.value}), ~{cond.estimated_falls_remaining} events left")
+
+sub("Fall probability & rope life")
+p = fall_probability(12.1, 11.4, style="sport")
+print(f"  5.12a at a 5.11d level → p(fall) {p:.0%} per attempt")
+risk = cumulative_risk(p, num_attempts=6, peak_force_kn=6.5,
+                       rope_rated_falls=8, falls_taken_so_far=2)
+print(f"  6 attempts today       → {risk.expected_falls:.1f} expected falls, "
+      f"rope life {risk.rope_life_consumed_pct:.0f}%")
+day = daily_exposure([(0.2, 3), (p, 6)], peak_force_kn=6.5, rope_rated_falls=8,
+                     falls_taken_so_far=2)
+print(f"  full day (2 pitches)   → retirement projected: {day.retirement_projected}")
+
+sub("Dynamic belayer")
+for mb, soft in ((110, False), (75, False), (55, True)):
+    r = dynamic_belay_reduction(80, mb, "atc", soft_catch_technique=soft)
+    style = "soft catch" if soft else "static-ish"
+    print(f"  {mb:>3} kg belayer ({style:<10}) → force × {r:.2f}")
+
+print("\nDone — v3 physics demo complete.")

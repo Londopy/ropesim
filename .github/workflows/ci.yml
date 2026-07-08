@@ -8,6 +8,117 @@ on:
     branches: [main]
 
 jobs:
+  # ── Lint (Python + Rust + C++) ─────────────────────────────────────────────
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: ruff + black
+        run: |
+          pip install ruff black
+          ruff check ropesim/ tests/
+          black --check ropesim/ tests/ || true   # advisory until repo is formatted
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with: { components: clippy, rustfmt }
+      - uses: Swatinem/rust-cache@v2
+        with: { workspaces: ropesim/_rustcore }
+      - name: clippy + rustfmt
+        run: |
+          cargo fmt --manifest-path ropesim/_rustcore/Cargo.toml --check || true
+          cargo clippy --manifest-path ropesim/_rustcore/Cargo.toml -- -D warnings
+      - name: clang-format (check only)
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y clang-format
+          find gui-cpp/src gui-cpp/tests -name '*.cpp' -o -name '*.h' \
+            | xargs clang-format --dry-run --Werror || true
+
+  # ── Rust unit tests ─────────────────────────────────────────────────────────
+  test-rust:
+    name: Rust unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with: { workspaces: ropesim/_rustcore }
+      - name: cargo test
+        run: cargo test --manifest-path ropesim/_rustcore/Cargo.toml
+
+  # ── C++ GUI build + bridge tests ───────────────────────────────────────────
+  build-cpp:
+    name: C++ GUI (Qt6) / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with: { workspaces: ropesim/_rustcore }
+      - name: Build Rust core (generates ropesim.h)
+        run: cargo build --release --manifest-path ropesim/_rustcore/Cargo.toml
+      - name: Install Qt 6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.6.*"
+      - name: Install GL dev deps (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -q && sudo apt-get install -y libgl1-mesa-dev libglm-dev
+      - name: Configure + build
+        run: |
+          cmake -S gui-cpp -B gui-cpp/build -DCMAKE_BUILD_TYPE=Release
+          cmake --build gui-cpp/build --config Release
+      - name: Run bridge tests
+        working-directory: gui-cpp/build
+        run: ctest --output-on-failure -C Release
+
+  # ── Docs site build check ───────────────────────────────────────────────────
+  build-docs:
+    name: Docs site build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Generate API docs JSON
+        run: |
+          pip install numpy pydantic matplotlib
+          python docs-site/scripts/generate-api-docs.py
+      - uses: actions/setup-node@v4
+        with: { node-version: "20", cache: npm, cache-dependency-path: docs-site/package-lock.json }
+      - name: Build static site
+        run: |
+          cd docs-site
+          npm ci
+          npm run build
+
+  # ── Notebook execution check ────────────────────────────────────────────────
+  test-notebooks:
+    name: Notebooks run headless
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with: { workspaces: ropesim/_rustcore }
+      - name: Build + install ropesim
+        run: |
+          python -m venv .venv && source .venv/bin/activate
+          pip install maturin numpy pydantic matplotlib jupyter nbval pytest
+          maturin develop --release
+      - name: Run notebooks via nbval
+        run: |
+          source .venv/bin/activate
+          python -m pytest --nbval-lax notebooks/ -v || true   # advisory
+
   # ── Pure-Python tests (no Rust compilation) ────────────────────────────────
   test-pure-python:
     name: Python ${{ matrix.python-version }} / ${{ matrix.os }}

@@ -1,0 +1,39 @@
+---
+title: Visualisation API
+description: Matplotlib plots and notebook-rich display.
+---
+
+## Plotting
+
+`ropesim.viz` wraps matplotlib with sensible defaults:
+
+```python
+from ropesim import viz
+
+viz.plot_force_curve(result)          # force–time with annotated peak
+viz.plot_anchor_sweep(anchor, 8.0)    # per-bolt force vs load angle
+viz.plot_energy_budget(result)        # stacked PE / rope / belay / residual
+viz.plot_sweep(sweep)                 # worst-case fall position on a pitch
+```
+
+Every function returns the `Figure`, so you can restyle or save:
+
+```python
+fig = viz.plot_force_curve(result)
+fig.savefig("fall.png", dpi=200)
+```
+
+## Notebooks
+
+Importing `ropesim.notebook` (automatic inside Jupyter) registers rich HTML
+reprs — `Rope`, `FallResult`, and `AnchorSystem` render as formatted cards
+with inline SVG curves instead of `<object at 0x…>`. The
+[example notebooks](/notebooks/) show all of it, and the `colab/` copies
+run end-to-end on a fresh Colab runtime with a single **Run all**.
+
+### Edge cases
+
+- Headless environments: set `MPLBACKEND=Agg` (the CLI's `report` command
+  does this for you when writing PDFs).
+- The GUI does **not** use matplotlib — its plots are native OpenGL
+  (`ForcePlotWidget`) for 60 fps interaction.

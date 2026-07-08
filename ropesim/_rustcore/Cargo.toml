@@ -2,16 +2,23 @@
 name    = "ropesim-rustcore"
 version = "0.1.0"
 edition = "2021"
+build   = "build.rs"
 
 [lib]
 name       = "_rustcore"
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-pyo3     = { version = "0.28", features = ["extension-module"] }
+# extension-module is enabled by maturin via pyproject.toml
+# ([tool.maturin] features = ["pyo3/extension-module"]) so that
+# `cargo test` can still link against libpython.
+pyo3     = { version = "0.28" }
 rayon    = "1.10"
 rapier3d = { version = "0.21", features = ["simd-stable"] }
 nalgebra = "0.33"
+
+[build-dependencies]
+cbindgen = "0.26"
 
 [features]
 default = []

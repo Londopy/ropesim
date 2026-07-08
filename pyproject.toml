@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name        = "ropesim"
-version     = "2.0.2"
+version     = "3.0.0"
 description = "Climbing rope physics engine and GUI simulator "
 readme      = "README.md"
 license     = { file = "LICENSE" }
@@ -33,23 +33,27 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-gui = ["PySide6>=6.6", "vispy>=0.14", "pyopengl>=3.1"]
+# v3: the desktop GUI is a native C++ application (see gui-cpp/), so the
+# old PySide6 [gui] extra is gone.  `ropesim gui` explains where to get it.
+tui = ["textual>=0.80"]
 dev = [
     "pytest>=7.4",
     "pytest-benchmark>=4.0",
     "maturin>=1.5",
+    "patchnotes>=0.1",
+    "ruff>=0.6",
+    "black>=24.0",
 ]
 all = [
-    "PySide6>=6.6",
-    "vispy>=0.14",
-    "pyopengl>=3.1",
+    "textual>=0.80",
     "pytest>=7.4",
     "pytest-benchmark>=4.0",
     "maturin>=1.5",
+    "patchnotes>=0.1",
 ]
 
 [project.scripts]
-ropesim     = "ropesim.gui:main"
+ropesim     = "ropesim.launcher:main"
 ropesim-cli = "ropesim.cli:main"
 
 [project.urls]

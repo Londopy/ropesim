@@ -1,0 +1,103 @@
+---
+title: v3 physics API
+description: Twin ropes, knots, abrasion, fall probability, dynamic belayer.
+---
+
+Everything on this page lives in `ropesim.physics_v3` and is re-exported at
+the package root. Each function calls the Rust core when compiled and an
+identical pure-Python model otherwise.
+
+## Twin & half ropes
+
+```python
+from ropesim import twin_rope_forces, half_rope_forces
+
+# both strands through the same piece — friction shares and dissipates
+fa, fb = twin_rope_forces(20.0, 20.0, mass_kg=80,
+                          fall_factor=1.0, inter_rope_friction=0.2)
+
+# half ropes clipped alternately — only one strand arrests the fall
+fa, fb = half_rope_forces(15.0, 15.0, 80, 1.0, active_rope=0)
+```
+
+<ParamTable params={[
+  { name: 'stiffness_a_kn / _b_kn', type: 'float', description: 'per-strand length-normalised stiffness' },
+  { name: 'mass_kg', type: 'float', description: 'falling mass' },
+  { name: 'fall_factor', type: 'float', description: 'UIAA factor, clamped [0, 2]' },
+  { name: 'inter_rope_friction', type: 'float', default: '0.2', description: 'strand-on-strand friction at the carabiner (twin only)' },
+  { name: 'active_rope', type: 'int', default: '0', description: '0 or 1 — which half-rope strand takes this fall' },
+]} />
+
+A twin pair totals *less* than two independent strands (inter-strand
+friction dissipates up to ~12% of peak) and friction pulls an uneven pair
+toward a 50/50 split.
+
+## Knot strength
+
+```python
+from ropesim import knot_strength_factor, cord_anchor_strength, KnotType
+
+knot_strength_factor(KnotType.FIGURE_EIGHT_RETRACE, 9.5)   # ≈ 0.78
+knot_strength_factor("clove_hitch", 9.8)                    # ≈ 0.63
+cord_anchor_strength(14.0, "overhand_on_bight", num_strands=3)
+```
+
+Eight knots are modelled with factors from published pull tests; thinner
+ropes lose slightly more (±0.5%/mm from 9.5 mm, capped ±4%). Unknown knot
+names raise `ValueError`.
+
+## Sheath abrasion
+
+```python
+from ropesim import abrasion_increment, accumulate_sheath_wear, SheathCondition
+
+cond = SheathCondition()
+inc = abrasion_increment("sandstone", contact_force_kn=5.0,
+                         contact_duration_s=0.4, rope_velocity_mps=2.0)
+cond = accumulate_sheath_wear(cond, inc, sheath_pct=38.0)
+cond.abrasion_score            # 0.0 new → 1.0 gone; retire at ≥ 0.85
+cond.estimated_falls_remaining
+```
+
+Archard-style wear: abrasiveness × force^1.3 × sliding distance. Rock
+ordering: sandstone > granite > basalt > limestone > ice.
+
+## Fall probability & exposure
+
+```python
+from ropesim import fall_probability, cumulative_risk, daily_exposure
+
+p = fall_probability(12.1, 11.4, style="sport")   # 5.12a at a 5.11d level
+risk = cumulative_risk(p, num_attempts=6, peak_force_kn=6.5,
+                       rope_rated_falls=8, falls_taken_so_far=2)
+risk.expected_falls, risk.rope_life_consumed_pct
+
+day = daily_exposure([(0.2, 3), (0.6, 5)], peak_force_kn=6.5,
+                     rope_rated_falls=8)
+day.retirement_projected, day.critical_pitch_index
+```
+
+Grades use YDS numeric (5.10a → 10.1). The logistic is calibrated so a
+sport climber at their limit falls on roughly half of attempts; trad shifts
+the curve down, bouldering up. Soft falls (< 7 kN) consume proportionally
+less rated-fall life than test-severity falls.
+
+## Dynamic belayer
+
+```python
+from ropesim import dynamic_belay_reduction
+
+dynamic_belay_reduction(
+    climber_mass_kg=80, belayer_mass_kg=55,
+    belay_device="atc", belayer_standing=True,
+    soft_catch_technique=True,
+)   # → 0.55–1.0 multiplier on peak force
+```
+
+Bounded to [0.55, 1.0]: even a perfect soft catch can't remove more than
+~45% of peak force.
+
+<Callout type="warning">
+The probability model describes populations, not your next attempt. Use it
+for rope-life planning, not for deciding whether to skip a clip.
+</Callout>

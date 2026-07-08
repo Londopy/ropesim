@@ -1,0 +1,66 @@
+---
+title: Rope specs
+description: What the numbers on a rope's hang tag actually mean.
+---
+
+## The spec sheet, decoded
+
+Every rope in the database mirrors a manufacturer's EN 892 sheet:
+
+| Field | Meaning | Typical single |
+| --- | --- | --- |
+| `diameter_mm` | nominal diameter | 8.9–10.2 |
+| `weight_gpm` | grams per metre | 52–70 |
+| `impact_force_kn` | peak force, first EN 892 test drop | 7.4–9.5 |
+| `number_of_falls` | rated test falls before failure | 5–11 |
+| `static_elongation_pct` | stretch at 80 kg body weight | 6–10% |
+| `dynamic_elongation_pct` | stretch at first test drop | 28–37% |
+| `sheath_percentage` | sheath share of rope mass | 30–45% |
+
+Lower impact force = softer catch = higher elongation. You cannot have a
+rope that is both very soft and very low-stretch; the physics won't allow it,
+and `RopeSpec` validation enforces `dynamic > static`.
+
+## From spec to stiffness
+
+The energy model needs stiffness, not impact force. ropesim inverts the
+UIAA formula at test conditions (80 kg, f = 1.772):
+
+```python
+rope = Rope.from_db("Beal Opera 8.5 Dry")
+rope.effective_stiffness()    # k in kN — reproduces the spec's 8.9 kN exactly
+```
+
+## Wear: falls, diameter, sheath (v3)
+
+Ropes age three ways in ropesim:
+
+```python
+# 1. Fall-count degradation: stiffness +20% at end of rated life
+old = rope.degrade(falls_taken=5)
+rope.retirement_warning(falls_taken=7)   # str | None
+
+# 2. Diameter under load (Poisson compression)
+rope.diameter_under_load(force_kn=8.0)   # mm
+
+# 3. Sheath abrasion accumulator (v3)
+from ropesim import abrasion_increment, accumulate_sheath_wear, SheathCondition
+
+cond = SheathCondition()
+inc = abrasion_increment("granite", contact_force_kn=5.0,
+                         contact_duration_s=0.4, rope_velocity_mps=2.0)
+cond = accumulate_sheath_wear(cond, inc, sheath_pct=38.0)
+cond.visual_rating            # NEW / GOOD / WORN / CRITICAL
+cond.needs_retirement         # True at score ≥ 0.85
+```
+
+Sandstone abrades roughly twice as fast as limestone; ice barely wears the
+sheath at all. Thicker sheaths (higher `sheath_percentage`) last
+proportionally longer.
+
+<Callout type="danger">
+The abrasion model estimates *trend*, not certainty. A single core shot
+retires a rope regardless of any score. Inspect by hand.
+</Callout>
+
+Related: [Rope API](/api/rope/) · [Standards](/concepts/standards/)

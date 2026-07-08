@@ -1,0 +1,60 @@
+---
+title: Rope API
+description: RopeSpec, Rope, and the rope database.
+---
+
+## Loading ropes
+
+```python
+from ropesim import Rope, RopeSpec, RopeDatabase
+
+rope = Rope.from_db("Beal Joker 9.1 Dry")     # exact name
+hits = Rope.search(max_diameter=9.0, dry_treated=True, manufacturer="Beal")
+```
+
+`RopeDatabase` wraps `ropesim/database/ropes.json` — the same file the C++
+GUI reads and writes, so ropes added in either place appear in both.
+
+## RopeSpec
+
+A validated pydantic model of the EN 892 sheet. Validation enforces
+`dynamic_elongation_pct > static_elongation_pct` and that `dry_treated`
+matches the rope type.
+
+<ParamTable params={[
+  { name: 'name', type: 'str', description: 'display name, unique in the database' },
+  { name: 'manufacturer', type: 'str', description: 'brand' },
+  { name: 'rope_type', type: 'RopeType', description: 'single / dry_single / half / twin' },
+  { name: 'diameter_mm', type: 'float', description: 'nominal diameter' },
+  { name: 'weight_gpm', type: 'float', description: 'grams per metre' },
+  { name: 'impact_force_kn', type: 'float', description: 'EN 892 first-drop peak force' },
+  { name: 'number_of_falls', type: 'int', description: 'rated UIAA test falls' },
+  { name: 'static_elongation_pct', type: 'float', description: 'stretch at 80 kg' },
+  { name: 'dynamic_elongation_pct', type: 'float', description: 'stretch at first test drop' },
+  { name: 'sheath_percentage', type: 'float', description: 'sheath share of mass' },
+  { name: 'length_m', type: 'float', default: '60.0', description: 'rope length' },
+]} />
+
+## Rope methods
+
+```python
+rope.effective_stiffness()          # kN — back-calculated from impact force
+rope.diameter_under_load(8.0)       # mm at 8 kN (Poisson compression)
+rope.elongation_at_force(6.0)       # elongated length (m) at 6 kN
+rope.validate_standard_compliance() # list of EN 892 violations, [] if clean
+
+old = rope.degrade(falls_taken=5)   # new Rope with fatigued spec
+rope.retirement_warning(7)          # warning string at ≥80% of rated falls
+
+rope.to_json(); Rope.from_json(s)   # round-trip a spec
+```
+
+### Edge cases
+
+- `Rope.from_db` raises `KeyError` for unknown names — catch it or use
+  `Rope.search` first.
+- `degrade(0)` returns an identical copy; negative falls are treated as 0.
+- `diameter_under_load` floors at 70% of nominal — beyond that the model
+  (and the rope) is no longer elastic.
+
+Full generated reference: [api/reference](/api/reference/).

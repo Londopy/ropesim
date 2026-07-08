@@ -1,0 +1,61 @@
+---
+title: GUI overview
+description: The native v3 desktop application.
+---
+
+## What it is
+
+The v3 desktop app is a **native C++ Qt6 application** — the PySide6 GUI
+from v2 is fully replaced. Same Rust physics core, consumed through a plain
+C FFI instead of Python, which buys a 60 fps OpenGL viewport, an
+interactive native force plot, faster startup, and single-binary installs.
+
+## Layout
+
+Three panels around a central view:
+
+- **Properties (left)** — rope selector with searchable database, climber
+  and belayer setup, environment (rock type, wet/dry, temperature, route
+  angle), physics mode, and scenario type with context-sensitive fields.
+- **View (centre)** — 2D route canvas (`F1`) or 3D viewport (`F2`).
+- **Results (right)** — SAFE/CAUTION/DANGER banner, big numbers (fall
+  factor, peak force in kN and lbf, deceleration, elongation), per-component
+  safety table, force curve, energy budget, anchor sweep, playback controls,
+  and export buttons.
+
+## 3D viewport
+
+- Orbit with left-drag, pan with middle-drag, zoom with scroll.
+- `R` resets the camera; `1`/`2`/`3` are front/side/top; `I` isometric.
+- The rope renders as a tube coloured by tension — blue (slack) through
+  green to red (approaching MBS).
+- Rock face presets: vertical slab, 30°/45° overhang, roof, crack system,
+  corner, arête — or load your own `.obj` mesh.
+- After a Rapier run, force arrows appear at each piece, scaled by load and
+  coloured by safety margin.
+
+## Placement mode
+
+Pick **+ Bolt**, **+ Cam**, or **+ Nut** in the toolbar, hover the rock face
+(a preview marker snaps to the surface via raycast), and click to place.
+Every placement is undoable (`Ctrl+Z` / `Ctrl+Y`).
+
+## Simulation
+
+| Key | Action |
+| --- | --- |
+| `F5` | analytical run (instant) |
+| `F6` | Rapier 3D run with recorded replay |
+| `F7` | zipper failure check |
+| `F8` | anchor angle sweep |
+
+Rapier runs load into the playback system: scrub the timeline, play at
+0.1×–1×, loop, and watch the catch frame by frame — the scrubber marks the
+peak-force frame in red.
+
+## Files
+
+`.ropesim` scenario files and `ropes.json` are shared with the Python side.
+Build a route in the GUI, batch-sweep it with `ropesim-cli` in CI.
+
+Next: [Route canvas](/gui/canvas/) · [Running simulations](/gui/simulation/)

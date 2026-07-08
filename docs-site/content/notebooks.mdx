@@ -1,0 +1,30 @@
+---
+title: Notebooks
+description: Jupyter examples, Colab-ready.
+---
+
+## Example notebooks
+
+Five notebooks live in `notebooks/`, each runnable top-to-bottom:
+
+| Notebook | Covers |
+| --- | --- |
+| `01_basic_fall_simulation` | Rope, Fall, force curves, modifiers |
+| `02_anchor_comparison` | Sliding-X vs quad vs cordelette across angles |
+| `03_rope_database_exploration` | Search, compare, degradation curves |
+| `04_scenario_builder` | Full routes, sweeps, zipper checks |
+| `05_rapier_3d_simulation` | Rigid-body mode and replays |
+
+## Google Colab
+
+The `colab/` folder holds Colab-ready copies: they `pip install ropesim`
+in the first cell, depend on no local files, and run clean with a single
+**Run all** on a fresh runtime.
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Londopy/ropesim/blob/main/colab/01_basic_fall_simulation.ipynb)
+
+## Rich display
+
+`import ropesim` inside Jupyter registers HTML reprs automatically —
+ropes render as spec cards, results with inline SVG force curves, anchors
+with load diagrams.

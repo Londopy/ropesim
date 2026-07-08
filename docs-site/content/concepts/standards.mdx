@@ -1,0 +1,46 @@
+---
+title: Standards
+description: EN 892, UIAA 101, and how ropesim validates against them.
+---
+
+## EN 892 / UIAA 101
+
+Dynamic climbing ropes are certified by a drop test: an 80 kg mass
+(55 kg for half ropes) falls 5 m onto 2.82 m of rope — fall factor ≈ 1.77,
+far harsher than almost any real fall. To pass, a single rope must:
+
+- keep peak impact force **≤ 12 kN** on the first drop
+- survive **≥ 5 drops** at 80 kg
+- keep static elongation **≤ 10%**, dynamic elongation **≤ 40%**
+- pass the same limits **wet** (the 2023 amendment)
+
+Half ropes are tested per-strand at 55 kg with an 8 kN limit; twins are
+tested as a pair.
+
+## Validation in ropesim
+
+```python
+rope = Rope.from_db("Beal Opera 8.5 Dry")
+violations = rope.validate_standard_compliance()   # [] when compliant
+```
+
+The CLI does the same for arbitrary specs:
+
+```bash
+ropesim-cli validate rope --name "Beal Opera 8.5 Dry"
+ropesim-cli validate scenario route.ropesim
+```
+
+And the GUI's rope editor shows live pass/fail per field as you type.
+
+## What the standards don't cover
+
+The test measures rope + static mass. Real falls add a belayer who moves, a
+device that slips, friction over carabiners, and rock contact — which is
+exactly the gap the [dynamic belayer](/concepts/fall-physics/#the-dynamic-belayer-v3)
+and [abrasion](/concepts/rope-specs/) models in v3 try to fill.
+
+<Callout type="info">
+Certification is a floor, not a score. Two compliant ropes can behave very
+differently — that's what the simulator is for.
+</Callout>

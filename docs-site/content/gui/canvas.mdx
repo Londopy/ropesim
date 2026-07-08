@@ -1,0 +1,40 @@
+---
+title: Route canvas
+description: Building routes in 2D and 3D.
+---
+
+## 2D canvas (F1)
+
+The 2D view is a side profile of the pitch: wall on the left (leaning with
+your route angle), height grid every 5 m, gear as coloured dots (blue =
+bolt, orange = cam, purple = nut), climber as the red marker, rope as the
+green polyline.
+
+- Click with a placement tool active to add gear at that height.
+- Drag with the hand tool to scroll; the canvas follows the route angle
+  slider in Properties live.
+
+The 2D canvas is fastest for **route planning** — spacing your clips and
+eyeballing fall potential before running anything.
+
+## 3D viewport (F2)
+
+Same scene, full geometry. Use it when the third dimension matters:
+
+- overhangs and roofs (rope hangs away from the rock),
+- pendulum potential (gear off the fall line),
+- ledge and terrain strikes in Rapier mode,
+- reading the tension gradient along the rope during playback.
+
+## Gear editing
+
+Double-click a placed piece (or use the Gear Editor dialog) to set type,
+MBS, placement quality (1.0 = textbook, 0.5 = marginal), and expected
+pull-out direction for cams. Quality multiplies into effective MBS
+everywhere downstream — the safety table, failure cascades, and arrow
+colours.
+
+<Callout type="info">
+Both views edit the same scenario. Place in 2D for speed, verify in 3D for
+geometry.
+</Callout>

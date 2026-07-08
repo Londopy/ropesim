@@ -1,0 +1,37 @@
+---
+title: Terminal UI
+description: The full-screen terminal interface.
+---
+
+## Launching
+
+```bash
+ropesim tui
+```
+
+Requires [Textual](https://textual.textualize.io/) (`pip install
+"ropesim[tui]"` pulls it in). Runs anywhere a terminal runs — SSH sessions
+included.
+
+## Screens
+
+- **Simulate** — pick a rope, set mass / fall distance / rope out / device
+  with keyboard-friendly inputs, hit `enter`, and read the results card:
+  fall factor, peak force, verdict, and an ASCII force-curve sparkline.
+- **Ropes** — the full database as a sortable table; `enter` shows the
+  complete spec sheet.
+- **Risk (v3)** — fall probability and rope-life projection from your
+  grade, the route grade, attempts, and falls already on the rope.
+
+## Keys
+
+| Key | Action |
+| --- | --- |
+| `tab` / `shift+tab` | move focus |
+| `s` / `r` / `k` | switch screens (simulate / ropes / risk) |
+| `enter` | run / select |
+| `d` | toggle dark mode |
+| `q` | quit |
+
+The TUI calls exactly the same Python API documented here — anything it
+shows, you can reproduce in three lines of code.

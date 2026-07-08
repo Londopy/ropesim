@@ -1,0 +1,28 @@
+---
+title: Changelog
+description: Release history.
+---
+
+The canonical changelog lives in
+[`CHANGELOG.md`](https://github.com/Londopy/ropesim/blob/main/CHANGELOG.md)
+(Keep a Changelog format — parseable with the
+[`patchnotes`](https://pypi.org/project/patchnotes/) library).
+
+## 3.0.0 — highlights
+
+- **Native C++ Qt6 GUI** replaces the PySide6 app: 60 fps OpenGL rope
+  renderer, native force plots, single-binary installers for
+  Windows/macOS/Linux.
+- **Dual FFI**: the Rust core now exports a plain C ABI (cbindgen) alongside
+  PyO3.
+- **New physics**: twin/half rope interaction, knot strength reduction,
+  sheath abrasion accumulator, fall probability & daily exposure model,
+  full dynamic belayer.
+- **Terminal UI**, this documentation site, contribution infrastructure,
+  and Colab-ready notebooks.
+
+```python
+from patchnotes import Changelog
+log = Changelog.from_github("Londopy/ropesim")
+print(log.latest.version, log.latest.date)
+```

@@ -1,0 +1,85 @@
+name: Rope spec submission
+description: Add a rope to the database (no coding required)
+labels: ["rope-data"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        All numbers must come from the manufacturer's published EN 892 /
+        UIAA 101 spec sheet or a test certificate — not estimates.
+  - type: input
+    id: name
+    attributes:
+      label: Rope name
+      placeholder: "Mammut 9.5 Crag Classic"
+    validations:
+      required: true
+  - type: input
+    id: manufacturer
+    attributes:
+      label: Manufacturer
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source of spec data
+      description: Manufacturer product page URL or test certificate
+    validations:
+      required: true
+  - type: dropdown
+    id: rope-type
+    attributes:
+      label: Rope type
+      options: [single, dry_single, half, twin]
+    validations:
+      required: true
+  - type: input
+    id: diameter
+    attributes:
+      label: Diameter (mm)
+    validations:
+      required: true
+  - type: input
+    id: weight
+    attributes:
+      label: Weight (g/m)
+    validations:
+      required: true
+  - type: input
+    id: impact-force
+    attributes:
+      label: Impact force (kN)
+    validations:
+      required: true
+  - type: input
+    id: falls
+    attributes:
+      label: UIAA falls
+    validations:
+      required: true
+  - type: input
+    id: static-elongation
+    attributes:
+      label: Static elongation (%)
+    validations:
+      required: true
+  - type: input
+    id: dynamic-elongation
+    attributes:
+      label: Dynamic elongation (%)
+    validations:
+      required: true
+  - type: input
+    id: sheath
+    attributes:
+      label: Sheath percentage (%)
+  - type: checkboxes
+    id: certification
+    attributes:
+      label: Certification
+      options:
+        - label: This rope is EN 892 / UIAA 101 certified
+          required: true
+        - label: I copied values from the official spec sheet, not a retailer listing
+          required: true
