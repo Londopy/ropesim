@@ -156,7 +156,9 @@ jobs:
       - uses: actions/download-artifact@v4
         with: { pattern: "wheels-*", path: dist, merge-multiple: true }
       - uses: pypa/gh-action-pypi-publish@release/v1
-        with: { packages-dir: dist }
+        with:
+          packages-dir: dist
+          skip-existing: true
 
   create-release:
     name: GitHub Release

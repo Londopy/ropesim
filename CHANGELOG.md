@@ -9,6 +9,27 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-07-08
+
+### Fixed
+- Rust core failed to compile: Python-style `{value!r}` placeholders in `format!`
+  strings in `py_v3.rs` replaced with Rust's `{value:?}`
+- C++ GUI cross-platform build fixes: `MainWindow.h` now includes
+  `PropertiesPanel.h` (defines `ScenarioParams`); `RouteCanvas2D.cpp` includes
+  `QGraphicsEllipseItem`; `M_PI` replaced with a portable constant on MSVC;
+  added missing `<functional>`, `<limits>`, `<array>`, `<algorithm>`, `<cstddef>`
+- `gui-cpp/CMakeLists.txt`: locate the MSVC `_rustcore.dll.lib` import library and
+  copy the Rust DLL beside the executables on Windows; AGL stub framework so the
+  GUI links on recent macOS SDKs that dropped the legacy AGL framework
+
+### Changed
+- Release pipeline now generates GitHub release notes from `CHANGELOG.md` using the
+  `patchnotes` library (`scripts/release_notes.py`) and attaches `SHA256SUMS.txt`
+- PyPI publish job tolerates already-uploaded files (`skip-existing`)
+- CI: Windows C++ bridge test skipped (libpython loader stall; covered by the
+  Windows Python jobs); lint remains advisory pending the pre-v3 cleanup
+
+
 ## [3.0.0] - 2026-07-08
 
 ### Added
