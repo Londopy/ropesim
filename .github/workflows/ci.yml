@@ -54,6 +54,7 @@ jobs:
   build-cpp:
     name: C++ GUI (Qt6) / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
@@ -78,7 +79,7 @@ jobs:
           cmake --build gui-cpp/build --config Release
       - name: Run bridge tests
         working-directory: gui-cpp/build
-        run: ctest --output-on-failure -C Release
+        run: ctest --output-on-failure --timeout 180 -C Release
 
   # ── Docs site build check ───────────────────────────────────────────────────
   build-docs:

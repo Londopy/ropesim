@@ -77,6 +77,26 @@ set(SOURCES
     src/renderer/ForceArrowRenderer.cpp
 )
 
+# ── macOS: legacy AGL framework shim ─────────────────────────────────────────
+# Recent macOS SDKs removed the deprecated AGL framework, but Qt6's OpenGL
+# module still asks the linker for `-framework AGL`. Build a tiny stub so the
+# linker is satisfied; harmless (and unused) on SDKs/Qt that don't need it.
+if(APPLE)
+    set(AGL_STUB_DIR ${CMAKE_BINARY_DIR}/_agl_stub)
+    file(MAKE_DIRECTORY ${AGL_STUB_DIR}/AGL.framework)
+    file(WRITE ${CMAKE_BINARY_DIR}/agl_stub.cpp
+        "extern \"C\" void ropesim_agl_stub() {}\n")
+    execute_process(
+        COMMAND ${CMAKE_CXX_COMPILER} -dynamiclib -install_name @rpath/AGL
+            ${CMAKE_BINARY_DIR}/agl_stub.cpp
+            -o ${AGL_STUB_DIR}/AGL.framework/AGL
+        RESULT_VARIABLE AGL_STUB_RC)
+    if(AGL_STUB_RC EQUAL 0)
+        add_link_options(-F${AGL_STUB_DIR})
+        message(STATUS "AGL stub framework: ${AGL_STUB_DIR}")
+    endif()
+endif()
+
 qt_add_executable(ropesim-gui ${SOURCES})
 
 target_include_directories(ropesim-gui PRIVATE
