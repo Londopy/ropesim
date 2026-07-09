@@ -9,6 +9,14 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.0.2] - 2026-07-08
+
+### Changed
+- CI no longer re-runs the full test matrix on version tags — a `v*` tag push
+  now triggers only the Release workflow (the tests already ran on the tagged
+  commit when it landed on `main`)
+
+
 ## [3.0.1] - 2026-07-08
 
 ### Fixed
