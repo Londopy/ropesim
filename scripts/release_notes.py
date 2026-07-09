@@ -28,7 +28,6 @@ except ImportError:
     sys.exit("release_notes.py needs the 'patchnotes' package:  pip install patchnotes")
 
 REPO = "Londopy/ropesim"
-DOCS_URL = "https://londopy.github.io/ropesim/"
 
 BLURB = """\
 **Climbing rope physics engine — Python library, CLI, TUI, and a native 3D desktop app.**
@@ -51,9 +50,7 @@ pip install "ropesim[tui]"   # + terminal UI
 **Desktop app** (no Python required) — download an asset below and run:
 - **Windows** — unzip `ropesim-gui-windows-x64.zip`, run `ropesim-gui.exe`
 - **macOS** — open `ropesim-gui-macos.dmg` (unsigned: right-click → Open the first time)
-- **Linux** — `chmod +x ropesim-gui-linux-x86_64.AppImage && ./ropesim-gui-linux-x86_64.AppImage`
-
-Docs: {DOCS_URL}"""
+- **Linux** — `chmod +x ropesim-gui-linux-x86_64.AppImage && ./ropesim-gui-linux-x86_64.AppImage`"""
 
 SAFETY = (
     "⚠️ *ropesim informs judgement — it is for education and planning, never a "

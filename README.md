@@ -10,7 +10,6 @@ same Rust core over a plain C FFI. Rapier3D full-physics mode, Jupyter
 integration, and a hosted documentation site round it out.
 
 [![CI](https://github.com/Londopy/ropesim/actions/workflows/ci.yml/badge.svg)](https://github.com/Londopy/ropesim/actions/workflows/ci.yml)
-[![Docs](https://img.shields.io/badge/docs-londopy.github.io%2Fropesim-7ecf45)](https://londopy.github.io/ropesim/)
 [![PyPI](https://img.shields.io/pypi/v/ropesim)](https://pypi.org/project/ropesim/)
 [![Python 3.10+](https://img.shields.io/pypi/pyversions/ropesim)](https://pypi.org/project/ropesim/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -30,7 +29,6 @@ integration, and a hosted documentation site round it out.
 - **Fall probability & daily exposure** — grade-delta logistic model, cumulative rope-life projection across a multi-pitch day
 - **Full dynamic belayer** — mass ratio, stance, device slip, and soft-catch technique (30–45 % force reduction)
 - **Terminal UI** — `ropesim tui` (Textual): simulate, browse the database, project risk
-- **Docs site** — [londopy.github.io/ropesim](https://londopy.github.io/ropesim/) with generated API reference
 
 - **UIAA 101 / EN 892** impact-force model with belay-device friction, wet-rope modifier, and temperature correction
 - **RK4 force-time curve** — full damped spring integration in Rust for accurate energy modelling

@@ -9,6 +9,18 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.0.3] - 2026-07-08
+
+### Fixed
+- Windows desktop app failed to launch with "`_rustcore.dll` was not found" —
+  the release bundle renamed the Rust core DLL to `ropesim.dll`, but the
+  executable looks for `_rustcore.dll`; the library now keeps its real name on
+  all platforms, and the Windows package ships the matching Python DLL
+
+### Removed
+- References to the (unpublished) documentation site
+
+
 ## [3.0.2] - 2026-07-08
 
 ### Changed

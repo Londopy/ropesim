@@ -21,6 +21,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with: { workspaces: ropesim/_rustcore }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
       - name: Build Rust core
         run: cargo build --release --manifest-path ropesim/_rustcore/Cargo.toml
       - uses: jurplel/install-qt-action@v4
@@ -36,7 +38,11 @@ jobs:
           New-Item -ItemType Directory -Path $out
           Copy-Item gui-cpp/build/Release/ropesim-gui.exe $out/ -ErrorAction SilentlyContinue
           if (!(Test-Path "$out/ropesim-gui.exe")) { Copy-Item gui-cpp/build/ropesim-gui.exe $out/ }
-          Copy-Item target/release/_rustcore.dll $out/ropesim.dll
+          # Keep the DLL's real name — the .exe links against _rustcore.dll.lib
+          # and looks for _rustcore.dll at runtime (renaming it breaks loading).
+          Copy-Item target/release/_rustcore.dll $out/
+          # The Rust core links libpython (PyO3), so ship the matching python DLL.
+          Copy-Item "$env:pythonLocation\python3*.dll" $out/ -ErrorAction SilentlyContinue
           Copy-Item -Recurse gui-cpp/shaders $out/shaders
           Copy-Item -Recurse gui-cpp/assets $out/assets
           windeployqt "$out/ropesim-gui.exe"
@@ -69,7 +75,7 @@ jobs:
             cp gui-cpp/build/ropesim-gui ropesim-gui.app/Contents/MacOS/
             APP=ropesim-gui.app
           fi
-          cp target/release/lib_rustcore.dylib $APP/Contents/Frameworks/libropesim.dylib || true
+          cp target/release/lib_rustcore.dylib $APP/Contents/Frameworks/ || true
           cp -R gui-cpp/shaders $APP/Contents/MacOS/shaders
           cp -R gui-cpp/assets  $APP/Contents/MacOS/assets
           macdeployqt $APP -dmg || hdiutil create -volname ropesim -srcfolder $APP ropesim-gui.dmg
@@ -104,7 +110,7 @@ jobs:
           chmod +x linuxdeploy*.AppImage
           mkdir -p AppDir/usr/bin AppDir/usr/lib
           cp gui-cpp/build/ropesim-gui AppDir/usr/bin/
-          cp target/release/lib_rustcore.so AppDir/usr/lib/libropesim.so
+          cp target/release/lib_rustcore.so AppDir/usr/lib/
           cp -R gui-cpp/shaders AppDir/usr/bin/shaders
           cp -R gui-cpp/assets  AppDir/usr/bin/assets
           cat > ropesim.desktop <<EOF
