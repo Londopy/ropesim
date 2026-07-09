@@ -163,6 +163,7 @@ jobs:
     needs: [build-windows, build-macos, build-linux, build-wheels]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with: { path: artifacts, merge-multiple: true }
       - name: Generate SHA256 checksums
@@ -172,12 +173,20 @@ jobs:
             -exec sh -c 'sha256sum "$1" | sed "s|  ./.*/|  |;s|  ./|  |"' _ {} \; > SHA256SUMS.txt
           echo "── SHA256SUMS.txt ──"
           cat SHA256SUMS.txt
+      - name: Render release notes from CHANGELOG.md (patchnotes)
+        run: |
+          python -m pip install --quiet patchnotes
+          VERSION="${GITHUB_REF_NAME#v}"
+          python scripts/release_notes.py "$VERSION" \
+            --changelog CHANGELOG.md \
+            --sha256 artifacts/SHA256SUMS.txt \
+            --output NOTES.md
       - uses: softprops/action-gh-release@v2
         with:
+          body_path: NOTES.md
           files: |
             artifacts/**/*.zip
             artifacts/**/*.dmg
             artifacts/**/*.AppImage
             artifacts/**/*.whl
             artifacts/SHA256SUMS.txt
-          generate_release_notes: true

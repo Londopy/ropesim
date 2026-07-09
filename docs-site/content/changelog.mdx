@@ -21,8 +21,16 @@ The canonical changelog lives in
 - **Terminal UI**, this documentation site, contribution infrastructure,
   and Colab-ready notebooks.
 
+The release notes on GitHub are generated from this same file by
+[`scripts/release_notes.py`](https://github.com/Londopy/ropesim/blob/main/scripts/release_notes.py),
+which parses it with `patchnotes` and groups the changes by type.
+
 ```python
-from patchnotes import Changelog
-log = Changelog.from_github("Londopy/ropesim")
-print(log.latest.version, log.latest.date)
+import patchnotes
+
+cl = patchnotes.parse_file("CHANGELOG.md")   # or Changelog.from_github("Londopy/ropesim")
+latest = cl.latest
+print(latest.version, latest.release_date)   # 3.0.0 2026-07-08
+for change_type, entries in latest.by_type.items():
+    print(change_type, len(entries))
 ```
