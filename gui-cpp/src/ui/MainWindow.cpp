@@ -232,6 +232,14 @@ void MainWindow::buildMenus() {
     sim->addAction(tr("Sweep Positions"), QKeySequence(Qt::Key_F8), this,
                    &MainWindow::runSweep);
 
+    // ── Demo ────────────────────────────────────────────────────────────
+    // One-click, fully preset scenarios that set every parameter and run.
+    QMenu* demo = menuBar()->addMenu(tr("&Demo"));
+    demo->addAction(tr("2D Fall Analysis Demo"), QKeySequence(Qt::Key_F9), this,
+                    &MainWindow::runDemo2D);
+    demo->addAction(tr("3D Rapier Fall Demo"), QKeySequence(Qt::Key_F10), this,
+                    &MainWindow::runDemo3D);
+
     // ── Help ────────────────────────────────────────────────────────────
     QMenu* help = menuBar()->addMenu(tr("&Help"));
     help->addAction(tr("Documentation"), this, [] {
@@ -629,6 +637,41 @@ void MainWindow::runSweep() {
     m_lastResult.scenarioType = p.scenarioType + " (anchor sweep)";
     m_results->showResult(m_lastResult);
     m_statusBar->showTransient(tr("anchor sweep at %1 kN").arg(load, 0, 'f', 1));
+}
+
+// ── Built-in demos ─────────────────────────────────────────────────────────────
+
+void MainWindow::loadDemoScenario() {
+    // Preset every parameter, then place four bolts up a vertical wall.
+    m_properties->applyDemoPreset();
+    m_gear.clear();
+    const double heights[] = {4.0, 8.0, 12.0, 16.0};
+    for (double h : heights) {
+        PlacedGear g;
+        g.gearType = 1; // bolt
+        g.position = {0.0f, static_cast<float>(h), 0.0f};
+        g.pullDir = {0.0f, -1.0f, 0.0f};
+        g.mbsKn = 25.0;
+        g.quality = 1.0;
+        m_gear.push_back(g);
+    }
+    m_undoStack.clear();
+    m_scenarioPath.clear();
+    refreshViews();
+}
+
+void MainWindow::runDemo2D() {
+    m_statusBar->showTransient(tr("loading 2D demo scenario…"));
+    loadDemoScenario();
+    m_viewStack->setCurrentIndex(0); // 2D canvas
+    runAnalytical();                 // updates results panel + status
+}
+
+void MainWindow::runDemo3D() {
+    m_statusBar->showTransient(tr("loading 3D demo scenario…"));
+    loadDemoScenario();
+    m_viewStack->setCurrentIndex(1); // 3D viewport
+    runRapier();                     // records + plays the replay
 }
 
 // ── Export ───────────────────────────────────────────────────────────────────

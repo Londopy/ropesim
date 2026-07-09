@@ -443,7 +443,12 @@ ropesim gui      # where to get the desktop app
 
 ### Demo mode
 
-The fastest way to see everything in action: **File → Open Scenario** and load
+The fastest way to see everything in action: the **Demo** menu →
+**2D Fall Analysis Demo** (`F9`) or **3D Rapier Fall Demo** (`F10`). Each one
+presets a complete lead-fall scenario (rope, climber, four bolts), switches to
+the matching view, and runs the simulation — no setup required.
+
+For a hand-built route: **File → Open Scenario** and load
 `examples/demo_route.ropesim`, then press `F6` (Rapier 3D run). You get a
 realistic mixed sport route, a recorded fall replay in the 3D viewport, force
 arrows on every piece, and a full results panel. `F8` sweeps the anchor angle.
@@ -463,10 +468,12 @@ arrows on every piece, and a full results panel. `F8` sweeps the anchor angle.
 
 | Key | Action |
 |-----|--------|
-| `F8` | Demo route (auto-build + simulate) |
-| `F5` | Run fall simulation |
-| `F6` | Sweep all positions |
+| `F5` | Run fall simulation (analytical) |
+| `F6` | Run Rapier 3D simulation |
 | `F7` | Zipper analysis |
+| `F8` | Sweep all positions |
+| `F9` | **2D fall-analysis demo** (preset scenario + run) |
+| `F10` | **3D Rapier fall demo** (preset scenario + run) |
 | `B` / `C` / `N` | Add bolt / cam / nut |
 | `F` | Fit canvas to view |
 | `Ctrl+Scroll` | Zoom canvas |

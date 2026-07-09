@@ -354,3 +354,20 @@ ScenarioParams PropertiesPanel::params() const {
 }
 
 void PropertiesPanel::refreshRopes() { m_ropeSelector->refresh(); }
+
+void PropertiesPanel::applyDemoPreset() {
+    // A realistic factor-~0.27 lead fall on a skinny single rope. Setting the
+    // widgets (rather than a detached params struct) means the whole left
+    // panel visibly reflects the demo, and the normal run path picks it up.
+    m_ropeSelector->selectRope(QStringLiteral("Beal Opera 8.5 Dry"));
+    m_scenarioType->setCurrentText(QStringLiteral("Lead"));
+    m_mass->setValue(80.0);
+    m_climberRouteHeight->setValue(17.0);
+    m_lastPieceHeight->setValue(15.0);
+    m_routeAngle->setValue(90);        // vertical wall (QSlider, integer degrees)
+    m_temperature->setValue(15);       // °C
+    m_dynamicBelay->setChecked(true);
+    m_linkSpacing->setCurrentIndex(1); // medium
+    m_timestep->setCurrentIndex(1);    // 1/240 s
+    emit paramsChanged();
+}

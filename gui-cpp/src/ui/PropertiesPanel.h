@@ -58,6 +58,9 @@ public:
     ScenarioParams params() const;
     void refreshRopes();
 
+    /// Populate every control with a ready-to-run lead-fall demo scenario.
+    void applyDemoPreset();
+
 signals:
     void paramsChanged();
     void rockTypeChanged(const QString& rockType);

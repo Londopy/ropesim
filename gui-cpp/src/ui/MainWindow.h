@@ -60,6 +60,11 @@ private:
     void runSweep();
     SimulationResult buildAnalyticalResult(const ScenarioParams& p);
 
+    // Built-in demos: preset a full scenario and run it in-app.
+    void loadDemoScenario();
+    void runDemo2D();
+    void runDemo3D();
+
     // Gear
     void onGearPlaced(int gearType, float x, float y, float z);
     void refreshViews();
