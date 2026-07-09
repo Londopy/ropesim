@@ -38,8 +38,12 @@ cargo build --release --manifest-path ropesim/_rustcore/Cargo.toml
 cd gui-cpp
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
-./build/ropesim-gui
+./build/ropesim-gui        # build/Release/ropesim-gui.exe on Windows
 ```
+
+On Windows the build finds cargo's `_rustcore.dll.lib` import library
+automatically and copies `_rustcore.dll` next to the built executables, so
+`ctest` and the GUI run in place.
 
 ### Docs site
 
@@ -64,7 +68,8 @@ compiled, so a pure-Python checkout still has a green suite.
 ## Code style
 
 - **Python** — `ruff check .` and `black .` (line length 100). Type hints on
-  public APIs.
+  public APIs. *Note: the CI lint job is currently advisory while pre-v3 lint
+  debt (~260 findings) is cleaned up — please still lint new code.*
 - **Rust** — `cargo fmt` and `cargo clippy -- -D warnings`. Physics functions
   get a doc comment citing the model source.
 - **C++** — `clang-format` (LLVM style, 4-space indent). Qt naming for

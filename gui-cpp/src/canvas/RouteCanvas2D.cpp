@@ -2,6 +2,7 @@
 
 #include "canvas/RouteCanvas2D.h"
 
+#include <QGraphicsEllipseItem>
 #include <QGraphicsScene>
 #include <QMouseEvent>
 #include <QPainter>

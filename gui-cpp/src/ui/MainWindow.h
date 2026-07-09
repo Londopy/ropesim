@@ -15,10 +15,10 @@
 #include "core/RopeSimBridge.h"
 #include "core/SimulationResult.h"
 #include "renderer/GearRenderer.h"
+#include "ui/PropertiesPanel.h"  // ScenarioParams
 
 class QSplitter;
 class QStackedWidget;
-class PropertiesPanel;
 class ResultsPanel;
 class RouteCanvas2D;
 class StatusBar;

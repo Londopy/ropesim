@@ -66,6 +66,16 @@ versioning follows [Semantic Versioning](https://semver.org/).
 - `pyproject.toml`: version 3.0.0; `[gui]` extra (PySide6/vispy) removed, `[tui]` extra added; `patchnotes` in dev extras
 - CI wheels build for Python 3.10–3.12
 
+### Fixed
+- `py_v3.rs`: Python-style `{value!r}` placeholders in `format!` strings replaced with Rust's `{value:?}` (broke every Rust build)
+- `gui-cpp/CMakeLists.txt`: locate the MSVC import library (`_rustcore.dll.lib`) that `find_library` cannot match, and copy the Rust DLL next to built executables on Windows so `ctest` and the GUI run in place
+- C++ portability: `M_PI` replaced with a local constant (undefined on MSVC); added missing `<functional>`, `<limits>`, `<array>`, `<algorithm>`, and `<cstddef>` includes
+- Release pipeline now attaches a `SHA256SUMS.txt` covering all binaries and wheels
+
+### CI notes
+- `ruff`/`black`/`clippy` in the Lint job are currently **advisory** (`|| true`) until the ~260 pre-v3 lint findings are cleaned up — remove the escapes in `.github/workflows/ci.yml` to make them blocking
+- The docs jobs use `npm install` (no `package-lock.json` is committed yet); commit a lockfile and switch back to `npm ci` for reproducible builds
+
 ### Removed
 - PySide6 desktop GUI as the supported application (replaced by the native app; legacy code remains importable but unmaintained)
 
