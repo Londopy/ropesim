@@ -56,7 +56,10 @@ docs-site/node_modules/
 docs-site/.next/
 docs-site/out/
 docs-site/data/api-data.json
-docs-site/npm-install.log
+docs-site/npm-examples/output/
+
+# Example demo outputs
+examples/output/
 
 # Release packaging
 *.AppImage

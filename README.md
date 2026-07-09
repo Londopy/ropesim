@@ -88,7 +88,31 @@ pip install -e ".[all]"        # optional GUI + notebook deps
 
 ## Demo
 
-A self-contained demo script exercises every feature of the library and saves
+### Focused 2-D and 3-D examples
+
+Two self-contained scripts in [`examples/`](examples/) set up every parameter,
+run a real simulation, and plot the results — nothing to configure, just run:
+
+```bash
+python examples/demo_2d.py        # analytical fall → 6 figures
+python examples/demo_3d.py        # Rapier 3-D fall → 3-D plot
+```
+
+`demo_2d.py` specifies a full fall (mass, distance, rope out, belay device,
+temperature, edge, timestep, damping), runs the UIAA / RK4 model, and saves a
+force–time curve, belay-device comparison, energy budget, rope-elongation
+curve, whole-route position sweep, and a route schematic.
+
+`demo_3d.py` builds a scenario (vertical rock face + bolt protection), steps
+the Rapier rigid-body world, and plots the rope in 3-D at peak load, the
+climber's fall path through space, and the anchor force curve.
+
+Both accept `--show` to display the figures and `--rope "<name>"` to pick a
+different rope. See [`examples/README.md`](examples/README.md) for details.
+
+### Full feature tour
+
+A larger self-contained script exercises every feature of the library and saves
 eight matplotlib plots to your working directory:
 
 ```bash
