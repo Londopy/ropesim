@@ -9,6 +9,8 @@
 
 #include <cmath>
 
+namespace { constexpr double kPi = 3.14159265358979323846; }
+
 RouteCanvas2D::RouteCanvas2D(QWidget* parent)
     : QGraphicsView(parent), m_scene(new QGraphicsScene(this)) {
     setScene(m_scene);
@@ -89,7 +91,7 @@ void RouteCanvas2D::rebuild() {
 
     // Wall profile: lean by (routeAngle − 90°)
     const double leanRad =
-        (m_routeAngleDeg - 90.0) * M_PI / 180.0; // >0 = overhanging
+        (m_routeAngleDeg - 90.0) * kPi / 180.0; // >0 = overhanging
     QPainterPath wall;
     wall.moveTo(metresToScene(0.0, 0.0));
     const double topX = -std::tan(leanRad) * kWallHeightM;

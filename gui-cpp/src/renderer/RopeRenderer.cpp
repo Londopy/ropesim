@@ -7,6 +7,9 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <cmath>
+#include <cstddef>
+
+namespace { constexpr double kPi = 3.14159265358979323846; }
 
 namespace {
 struct Vertex {
@@ -68,7 +71,7 @@ void RopeRenderer::updatePositions(const std::vector<glm::vec3>& linkPositions,
                             : (tensions.empty() ? 0.0f
                                                 : static_cast<float>(tensions.back()));
         for (int s = 0; s < kSides; ++s) {
-            const float a = 2.0f * static_cast<float>(M_PI) * s / kSides;
+            const float a = 2.0f * static_cast<float>(kPi) * s / kSides;
             const glm::vec3 normal = u * std::cos(a) + v * std::sin(a);
             vertices.push_back({linkPositions[i] + normal * radius, normal, t});
         }

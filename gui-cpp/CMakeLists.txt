@@ -30,6 +30,17 @@ find_library(ROPESIM_CORE_LIB
         ${CMAKE_CURRENT_SOURCE_DIR}/../target/release
         ${CMAKE_CURRENT_SOURCE_DIR}/../target/debug
     NO_DEFAULT_PATH)
+# MSVC: cargo names the import library `_rustcore.dll.lib`, which
+# find_library does not match — locate it explicitly.
+if(WIN32 AND NOT ROPESIM_CORE_LIB)
+    foreach(dir lib ../target/release ../target/debug)
+        if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${dir}/_rustcore.dll.lib)
+            set(ROPESIM_CORE_LIB ${CMAKE_CURRENT_SOURCE_DIR}/${dir}/_rustcore.dll.lib)
+            set(ROPESIM_CORE_DLL ${CMAKE_CURRENT_SOURCE_DIR}/${dir}/_rustcore.dll)
+            break()
+        endif()
+    endforeach()
+endif()
 if(NOT ROPESIM_CORE_LIB)
     message(FATAL_ERROR
         "Rust core library not found.\n"
@@ -91,3 +102,12 @@ target_include_directories(test_bridge PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(test_bridge PRIVATE glm::glm ${ROPESIM_CORE_LIB})
 add_test(NAME bridge COMMAND test_bridge)
+
+# Windows: the Rust DLL must sit next to the executables at runtime.
+if(WIN32 AND ROPESIM_CORE_DLL)
+    foreach(tgt ropesim-gui test_bridge)
+        add_custom_command(TARGET ${tgt} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${ROPESIM_CORE_DLL} $<TARGET_FILE_DIR:${tgt}>)
+    endforeach()
+endif()

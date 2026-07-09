@@ -7,7 +7,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <algorithm>
 #include <cmath>
+
+namespace { constexpr double kPi = 3.14159265358979323846; }
 
 namespace {
 void pushTri(std::vector<float>& out, glm::vec3 a, glm::vec3 b, glm::vec3 c) {
@@ -66,7 +69,7 @@ void GearRenderer::buildBolt() {
     constexpr int seg = 12;
     const float r = 0.03f, len = 0.05f;
     for (int i = 0; i < seg; ++i) {
-        const float a0 = 2.0f * M_PI * i / seg, a1 = 2.0f * M_PI * (i + 1) / seg;
+        const float a0 = 2.0f * kPi * i / seg, a1 = 2.0f * kPi * (i + 1) / seg;
         const glm::vec3 c0(r * std::cos(a0), r * std::sin(a0), 0.0f);
         const glm::vec3 c1(r * std::cos(a1), r * std::sin(a1), 0.0f);
         // disc face

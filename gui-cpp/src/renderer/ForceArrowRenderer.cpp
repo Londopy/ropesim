@@ -6,7 +6,10 @@
 #include <QOpenGLExtraFunctions>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <algorithm>
 #include <cmath>
+
+namespace { constexpr double kPi = 3.14159265358979323846; }
 
 bool ForceArrowRenderer::initialize() {
     if (!m_program.addShaderFromSourceFile(QOpenGLShader::Vertex,
@@ -30,7 +33,7 @@ bool ForceArrowRenderer::initialize() {
     const glm::vec3 tip(0.0f, tipY, 0.0f);
     constexpr int seg = 4;
     for (int i = 0; i < seg; ++i) {
-        const float a0 = 2.0f * M_PI * i / seg, a1 = 2.0f * M_PI * (i + 1) / seg;
+        const float a0 = 2.0f * kPi * i / seg, a1 = 2.0f * kPi * (i + 1) / seg;
         const glm::vec3 b0(r * std::cos(a0), baseY, r * std::sin(a0));
         const glm::vec3 b1(r * std::cos(a1), baseY, r * std::sin(a1));
         for (const auto& p : {tip, b0, b1})

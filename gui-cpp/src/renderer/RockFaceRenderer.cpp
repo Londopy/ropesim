@@ -9,7 +9,9 @@
 #include <QTextStream>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <array>
 #include <cmath>
+#include <limits>
 
 namespace {
 constexpr float kFaceWidth = 8.0f;  // m

@@ -16,6 +16,8 @@
 #include <QStackedWidget>
 #include <QUndoCommand>
 
+#include <functional>
+
 #include <cmath>
 
 #include "canvas/RouteCanvas2D.h"
