@@ -9,6 +9,14 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.0.4] - 2026-07-08
+
+### Added
+- Example script `examples/demo_2d.py`: runs a full analytical fall and plots six figures (force curve, belay-device comparison, energy budget, rope elongation, route position sweep, and route schematic)
+- Example script `examples/demo_3d.py`: runs a Rapier 3-D fall and plots the rope in 3-D at peak load, the climber's fall path, and the anchor force curve
+- Desktop GUI **Demo** menu — **2D Fall Analysis Demo** (`F9`) and **3D Rapier Fall Demo** (`F10`) preset a complete lead-fall scenario, switch to the matching view, and run the simulation with no setup required
+
+
 ## [3.0.3] - 2026-07-08
 
 ### Fixed
