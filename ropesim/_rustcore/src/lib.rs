@@ -24,6 +24,11 @@ mod belay;
 mod py_v3;
 pub mod ffi;
 
+// v4 — nonlinear rope, capstan friction, two-body belayer dynamics
+mod nonlinear;
+mod capstan;
+mod two_body;
+
 /// ropesim._rustcore
 ///
 /// Rust-accelerated physics core for the ropesim library.
@@ -36,5 +41,8 @@ fn _rustcore(m: &Bound<'_, PyModule>) -> PyResult<()> {
     sim_data::register(m)?;
     world::register(m)?;
     py_v3::register(m)?;
+    nonlinear::register(m)?;
+    capstan::register(m)?;
+    two_body::register(m)?;
     Ok(())
 }

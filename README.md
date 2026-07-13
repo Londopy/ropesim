@@ -19,6 +19,13 @@ integration, and a hosted documentation site round it out.
 
 ## Features
 
+**New in v3.1**
+
+- **Nonlinear rope model** — cubic force–strain law calibrated against *both* rated impact force and dynamic elongation (two-point EN 892 calibration); exact at the test point in force *and* elongation, more realistic forces at low fall factors
+- **Capstan route friction** — tension propagation through every carabiner (`T·e^(−μθ)`), per-piece loads, belay-device tension, and rope-drag factor; physically derived replacement for the scalar belay-friction guess
+- **Two-body belayer dynamics** — coupled climber + belayer ODE over the top piece; the soft catch emerges from the belayer being lifted rather than being asserted
+- **Validation regression suite** — all 25 database ropes double as manufacturer drop-test data points the models must reproduce in CI, plus closed-form analytic invariants
+
 **New in v3**
 
 - **Native desktop app (C++ / Qt6)** — single-binary installers for Windows, macOS, and Linux; 60 fps OpenGL rope renderer with tension heatmap, raycast gear placement, native interactive force plots, simulation playback with scrubber

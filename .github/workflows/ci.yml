@@ -49,6 +49,36 @@ jobs:
       - name: cargo test
         run: cargo test --manifest-path ropesim/_rustcore/Cargo.toml
 
+  # ── Python tests against a FRESHLY BUILT extension ─────────────────────────
+  # Builds the Rust core with maturin and runs the full pytest suite,
+  # including tests/validation/.  This guards against the checked-in binary
+  # going stale: tests always run against the code in the PR, never against a
+  # committed .so/.pyd.
+  test-python:
+    name: Python tests / ${{ matrix.os }} / py${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "${{ matrix.python }}" }
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with: { workspaces: ropesim/_rustcore }
+      - name: Remove committed prebuilt binaries (force fresh build)
+        shell: bash
+        run: rm -f ropesim/_rustcore*.so ropesim/_rustcore*.pyd
+      - name: Build + install with maturin
+        run: |
+          pip install maturin pytest pydantic numpy
+          maturin develop --release
+      - name: pytest (unit + integration + validation)
+        run: python -m pytest tests/ -q --ignore=tests/bench
+
   # ── C++ GUI build + bridge tests ───────────────────────────────────────────
   build-cpp:
     name: C++ GUI (Qt6) / ${{ matrix.os }}

@@ -74,6 +74,15 @@ from ropesim.physics_v3 import (
     daily_exposure,
     dynamic_belay_reduction,
 )
+from ropesim.physics_v4 import (
+    nonlinear_rope_from_spec,
+    nonlinear_impact_force,
+    nonlinear_force_curve,
+    capstan_ratio,
+    route_friction,
+    route_transmission,
+    two_body_catch,
+)
 from ropesim import units, viz, standards
 
 # v2 Rust-side types exposed directly from _rustcore
@@ -83,6 +92,9 @@ except ImportError:
     pass  # _rustcore not yet compiled; graceful degradation
 
 __all__ = [
+    # v4
+    "nonlinear_rope_from_spec", "nonlinear_impact_force", "nonlinear_force_curve",
+    "capstan_ratio", "route_friction", "route_transmission", "two_body_catch",
     # rope
     "Rope", "RopeSpec", "RopeType", "RopeStandard", "RopeDatabase",
     # fall

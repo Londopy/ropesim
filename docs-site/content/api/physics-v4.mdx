@@ -1,0 +1,121 @@
+---
+title: v4 physics API
+description: Nonlinear rope model, capstan route friction, two-body belayer dynamics.
+---
+
+Everything on this page lives in `ropesim.physics_v4` and is re-exported at
+the package root. All three models run in the Rust core.
+
+## Nonlinear rope model
+
+The linear spring uses one published number (rated impact force) and one free
+parameter — so it cannot match the measured dynamic elongation. The v4 model
+uses a cubic force–strain law
+
+```
+F(ε) = a·ε + b·ε³        ε = elongation / rope out
+```
+
+calibrated against **both** EN 892 results, so it is exact in force *and*
+elongation at the test point (80 kg, fall factor 1.772). Below the test
+point it predicts higher — more realistic — forces than the linear model,
+because real ropes are stiff early in the stretch.
+
+```python
+from ropesim import Rope, nonlinear_impact_force, nonlinear_force_curve
+
+rope = Rope.from_database("Beal Joker 9.1 Dry")
+
+# peak force via energy balance (kN)
+nonlinear_impact_force(rope, mass_kg=72, fall_factor=0.4)
+
+# full RK4 force–time curve, kN per timestep
+curve = nonlinear_force_curve(rope, 72, fall_distance_m=3.0, rope_out_m=12.0)
+```
+
+<ParamTable params={[
+  { name: 'rope', type: 'Rope | RopeSpec', description: 'spec supplies impact_force_kn and dynamic_elongation_pct' },
+  { name: 'mass_kg', type: 'float', description: 'falling mass' },
+  { name: 'fall_factor', type: 'float', description: 'UIAA factor, clamped [0, 2]' },
+  { name: 'belay_friction', type: 'float', default: '0.0', description: 'legacy scalar transmission loss — prefer route_transmission()' },
+  { name: 'test_mass_kg', type: 'float', default: '80.0', description: 'EN 892 test mass (55 kg for half-rope specs)' },
+]} />
+
+`nonlinear_rope_from_spec(rope)` returns the calibrated `NonlinearRope`
+handle if you want to call the Rust functions directly or inspect the
+coefficients (`a_kn`, `b_kn`, `eps_star`, `tangent_kn`).
+
+The cubic is trusted up to the calibration strain and extends linearly along
+its tangent beyond it. For a handful of extreme specs the fitted curve has a
+sub-percent dip near the calibration strain; this is physically negligible
+and covered by the validation suite.
+
+## Capstan route friction
+
+Tension propagation through every carabiner via the capstan equation
+`T_out = T_in · e^(−μθ)`, where θ is the bend angle at each piece.
+
+```python
+from ropesim import route_friction, route_transmission, capstan_ratio
+
+# top piece first: 170° at the catch biner, then three draws
+rf = route_friction(8.2, [170, 30, 20, 10], mu=0.2)
+
+rf.segment_tensions_kn   # tension in each rope segment, climber → belayer
+rf.piece_loads_kn        # resultant load on each piece (top ≈ T₁ + T₂)
+rf.belay_tension_kn      # what actually reaches the belay device
+rf.drag_factor           # e^(μ·Σθ) — rope drag multiplier
+
+# physically derived replacement for the old scalar belay_friction:
+route_transmission([170, 30, 20, 10], mu=0.2)   # → fraction 0–1
+```
+
+The load on the top piece is the vector resultant of both rope segments —
+the classic "pulley effect": ~1.4–1.9× the climber-side tension depending
+on μ and geometry.
+
+## Two-body belayer dynamics
+
+Instead of asserting a soft-catch reduction factor, `two_body_catch` couples
+the climber and the belayer through the top piece and integrates both. The
+belayer being lifted **is** the soft catch — the force reduction emerges
+from the ODE.
+
+```python
+from ropesim import two_body_catch
+
+r = two_body_catch(climber_kg=80, belayer_kg=60,
+                   fall_distance_m=4.0, climber_side_rope_m=5.0,
+                   rope=rope)
+
+r.peak_climber_kn       # peak force on the climber
+r.peak_top_piece_kn     # top-piece load (climber + belay side)
+r.max_belayer_lift_m    # how high the belayer gets pulled
+r.reduction_pct         # vs a rigid anchor — derived, not asserted
+r.force_curve_kn        # full force–time curve
+```
+
+<ParamTable params={[
+  { name: 'climber_kg / belayer_kg', type: 'float', description: 'the two coupled masses' },
+  { name: 'fall_distance_m', type: 'float', description: 'free fall before the rope comes taut' },
+  { name: 'climber_side_rope_m', type: 'float', description: 'unstretched rope, top piece → climber' },
+  { name: 'rope', type: 'Rope | RopeSpec | float', description: 'spec, or a length-normalised stiffness in kN' },
+  { name: 'mu_top / theta_top_deg', type: 'float', default: '0.25 / 170', description: 'capstan friction at the top piece' },
+  { name: 'damping_ratio', type: 'float', default: '0.15', description: 'rope damping ζ' },
+]} />
+
+Typical output: a 60 kg belayer catching an 80 kg climber reduces peak force
+by ~20 % relative to a rigid anchor and is lifted 2–4 m; a 110 kg belayer
+gives ~7 %. Reduction converges to zero as belayer mass → ∞ (verified in
+the validation suite).
+
+## Validation
+
+`tests/validation/` treats every rope in the bundled database as a
+manufacturer drop-test data point that both models must reproduce, and pins
+the integrators to closed-form solutions (Wexler equation, capstan equation,
+energy conservation). Run it with:
+
+```bash
+python -m pytest tests/validation/ -v
+```

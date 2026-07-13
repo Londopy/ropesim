@@ -8,6 +8,14 @@ The canonical changelog lives in
 (Keep a Changelog format — parseable with the
 [`patchnotes`](https://pypi.org/project/patchnotes/) library).
 
+## 3.1.0 — highlights
+
+- Nonlinear rope model: two-point EN 892 calibration (impact force + dynamic elongation)
+- Capstan route friction: per-piece loads, belay tension, rope-drag factor
+- Two-body belayer dynamics: the soft catch derived from a coupled ODE, not asserted
+- Validation regression suite: 25 manufacturer drop-test data points tracked in CI
+- Fixed `compute_force_curve` truncation at sub-millisecond timesteps
+
 ## 3.0.0 — highlights
 
 - **Native C++ Qt6 GUI** replaces the PySide6 app: 60 fps OpenGL rope

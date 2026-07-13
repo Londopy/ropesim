@@ -111,7 +111,7 @@ fn rk4_step(delta: f64, v: f64, m_kg: f64, k_nm: f64, c_ns_m: f64, dt: f64) -> (
 ///     - c (N·s/m) derived from `damping_coeff` as a fraction of critical damping:
 ///         c = damping_coeff · 2 · √(k · m)
 /// * Integration continues until the rope goes slack AND the climber is rising,
-///   or a 3000-step limit is reached (~3 s at 1 ms/step).
+///   or 3 s of simulated time is reached (step limit scales with `timestep_ms`).
 ///
 /// `damping_coeff` is the dimensionless damping ratio ζ (typically 0.05–0.25
 /// for climbing ropes).  0.0 = undamped (unrealistic), 1.0 = critically damped.
@@ -142,7 +142,13 @@ pub fn compute_force_curve(
     let mut v = v0; // velocity (m/s, downward positive)
     let mut peak_passed = false;
 
-    for _ in 0..3000 {
+    // Cap simulated *time* (not step count) so fine timesteps don't truncate
+    // the catch: 3 s of simulated time regardless of dt, with a hard step
+    // ceiling as a safety net against pathological inputs.
+    const MAX_SIM_TIME_S: f64 = 3.0;
+    let max_steps = ((MAX_SIM_TIME_S / dt).ceil() as usize).clamp(3000, 3_000_000);
+
+    for _ in 0..max_steps {
         // Rope force at this timestep (kN); clamp to ≥ 0 (rope can't push)
         let f_rope_n = if delta > 0.0 {
             (k_nm * delta + c_ns_m * v).max(0.0)

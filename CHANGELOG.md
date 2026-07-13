@@ -9,6 +9,18 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-07-13
+
+### Added
+- **Nonlinear rope model** (`nonlinear_rope_from_spec`, `nonlinear_impact_force`, `nonlinear_force_curve`): cubic force–strain law `F(ε) = a·ε + b·ε³` calibrated against *both* the rated impact force and the dynamic elongation (two-point EN 892 calibration). Exact in force and elongation at the test point; predicts higher (more realistic) forces than the linear model at low fall factors.
+- **Capstan route friction** (`capstan_ratio`, `route_friction`, `route_transmission`): tension propagation through every carabiner via the capstan equation `T_out = T_in·e^(−μθ)`, per-piece resultant loads, belay-device tension, and overall drag factor. Physically derived replacement for the scalar `belay_friction` guess.
+- **Two-body belayer dynamics** (`two_body_catch`): coupled climber + belayer ODE over the top piece with capstan friction; the soft catch (typically 5–25 % force reduction, scaling inversely with belayer mass) emerges from the belayer being lifted rather than being asserted.
+- **Validation regression suite** (`tests/validation/`): every rope in the 25-rope database is a manufacturer drop-test data point that the models must reproduce within tolerance, plus analytic invariants (Wexler closed form, energy conservation, capstan closed form, limiting cases). Table for external literature drop tests included (empty until transcribed with page references).
+- **CI: Python test job** builds the Rust core fresh with maturin on Linux + Windows (Python 3.10/3.12), deletes any committed prebuilt binaries first, and runs the full suite including validation — a committed stale binary can no longer mask failures.
+
+### Fixed
+- `compute_force_curve` truncated the simulation when `timestep_ms` < ~0.25 ms (hardcoded 3000-step cap): peaks were silently under-reported (~3 % at 0.1 ms, catastrophic at 0.01 ms). The cap now scales with the timestep (3 s of simulated time).
+
 ## [3.0.4] - 2026-07-08
 
 ### Added

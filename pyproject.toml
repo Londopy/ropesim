@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name        = "ropesim"
-version     = "3.0.4"
+version     = "3.1.0"
 description = "Climbing rope physics engine and GUI simulator "
 readme      = "README.md"
 license     = { file = "LICENSE" }

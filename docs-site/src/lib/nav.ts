@@ -35,6 +35,7 @@ export const nav: NavSection[] = [
       { title: 'Anchor', slug: 'api/anchor' },
       { title: 'Scenario', slug: 'api/simulate' },
       { title: 'v3 physics', slug: 'api/physics-v3' },
+      { title: 'v4 physics', slug: 'api/physics-v4' },
       { title: 'Visualisation', slug: 'api/viz' },
       { title: 'CLI', slug: 'api/cli' },
       { title: 'Generated reference', slug: 'api/reference' },
