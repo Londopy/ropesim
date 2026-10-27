@@ -32,6 +32,8 @@ import pytest
 
 pytest.importorskip("ropesim._rustcore", reason="Rust extension not compiled")
 
+pytestmark = pytest.mark.requires_rust
+
 from ropesim import _rustcore as rc
 
 G = 9.81

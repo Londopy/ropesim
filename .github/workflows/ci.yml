@@ -72,12 +72,27 @@ jobs:
       - name: Remove committed prebuilt binaries (force fresh build)
         shell: bash
         run: rm -f ropesim/_rustcore*.so ropesim/_rustcore*.pyd
+      # maturin develop needs a virtualenv; it finds .venv in the repo root.
       - name: Build + install with maturin
+        shell: bash
         run: |
+          python -m venv .venv
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            source .venv/Scripts/activate
+          else
+            source .venv/bin/activate
+          fi
           pip install maturin pytest pydantic numpy
           maturin develop --release
       - name: pytest (unit + integration + validation)
-        run: python -m pytest tests/ -q --ignore=tests/bench
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            source .venv/Scripts/activate
+          else
+            source .venv/bin/activate
+          fi
+          python -m pytest tests/ -q --ignore=tests/bench
 
   # ── C++ GUI build + bridge tests ───────────────────────────────────────────
   build-cpp:
