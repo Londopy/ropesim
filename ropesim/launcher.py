@@ -21,7 +21,7 @@ usage:
   ropesim gui          how to get the native desktop application
 
 python API:            import ropesim
-documentation:         https://londopy.github.io/ropesim/
+documentation:         https://londo.me/ropesim/
 """
 
 GUI_NOTE = """\

@@ -19,7 +19,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent) {
            "(UIAA 101 / EN 892 model, RK4 integration, Rapier3D).<br>"
            "Rust core ABI version: %1<br><br>"
            "<a href='https://github.com/Londopy/ropesim'>github.com/Londopy/ropesim</a> · "
-           "<a href='https://londopy.github.io/ropesim/'>documentation</a><br><br>"
+           "<a href='https://londo.me/ropesim/'>documentation</a><br><br>"
            "<i>For education and planning — never a substitute for judgement, "
            "testing, and redundancy at the crag.</i>")
             .arg(RopeSimBridge::abiVersion()),

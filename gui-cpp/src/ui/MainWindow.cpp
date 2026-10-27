@@ -243,7 +243,7 @@ void MainWindow::buildMenus() {
     // ── Help ────────────────────────────────────────────────────────────
     QMenu* help = menuBar()->addMenu(tr("&Help"));
     help->addAction(tr("Documentation"), this, [] {
-        QDesktopServices::openUrl(QUrl("https://londopy.github.io/ropesim/"));
+        QDesktopServices::openUrl(QUrl("https://londo.me/ropesim/"));
     });
     help->addAction(tr("About ropesim"), this, [this] {
         AboutDialog dlg(this);
